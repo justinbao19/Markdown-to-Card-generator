@@ -174,6 +174,11 @@ export default function CardGenerator() {
     }
   }, []);
 
+  // Helper: Get max scale based on screen size (Mobile: 100%, Desktop: 150%)
+  const getMaxScale = () => {
+    return typeof window !== 'undefined' && window.innerWidth < 1024 ? 100 : 150;
+  };
+
   // Export
   const handleExport = useCallback(async () => {
     if (cardRef.current === null) return;
@@ -546,10 +551,16 @@ export default function CardGenerator() {
 
         {/* Scrollable Canvas Area */}
         <div className="flex-1 w-full h-full overflow-y-auto overflow-x-hidden custom-scrollbar">
-          <div className="min-h-full flex flex-col items-center py-4 px-4 pb-24 sm:p-20 lg:pb-20">
+          <div 
+            className="min-h-full flex flex-col items-center px-4 sm:px-20"
+            style={{ 
+              paddingTop: `${scale > 100 ? 80 + (scale - 100) * 8 : 80}px`,
+              paddingBottom: `${scale > 100 ? 80 + (scale - 100) * 10 : 80}px`
+            }}
+          >
             
             <div 
-              className="my-auto transition-transform duration-200 ease-out origin-center will-change-transform"
+              className="transition-transform duration-200 ease-out origin-top will-change-transform"
               style={{ transform: `scale(${scale / 100})` }}
               onClick={() => {
                 // Only trigger edit mode on mobile if click target is within card area
@@ -628,12 +639,12 @@ export default function CardGenerator() {
                   min="50"
                   max="150"
                   value={scale}
-                  onChange={(e) => setScale(Number(e.target.value))}
+                  onChange={(e) => setScale(Math.min(getMaxScale(), Number(e.target.value)))}
                   className="w-full h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
                 />
               </div>
               <button 
-                 onClick={(e) => { e.stopPropagation(); setScale(s => Math.min(150, s + 10)); }}
+                 onClick={(e) => { e.stopPropagation(); setScale(s => Math.min(getMaxScale(), s + 10)); }}
                  className="text-slate-500 hover:text-slate-800 transition-colors"
               >
                 <Plus size={16} />
