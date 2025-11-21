@@ -163,10 +163,13 @@ export default function CardGenerator() {
     };
   }, [resize, stopResizing]);
 
-  // Set initial scale for mobile on mount
+  // Set initial scale based on screen size
   useEffect(() => {
-    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
-      setScale(70);
+    const isMobile = window.innerWidth < 1024;
+    if (isMobile) {
+      setScale(70); // Mobile: 70% for better fit
+    } else {
+      setScale(100); // Desktop: 100% (full size)
     }
   }, []);
 
@@ -255,7 +258,6 @@ export default function CardGenerator() {
               <div className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-3 border-b border-gray-100 pb-2">
                 Markdown Guide
               </div>
-              {/* ... Markdown Guide Content ... */}
               <div className="space-y-2.5 text-xs">
                 <div className="flex items-center justify-between">
                   <code className="bg-gray-100 px-1.5 py-0.5 rounded text-indigo-600 font-mono">**Bold**</code>
@@ -266,13 +268,28 @@ export default function CardGenerator() {
                   <span className="italic text-slate-600">Italic Text</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <code className="bg-gray-100 px-1.5 py-0.5 rounded text-indigo-600 font-mono"># H1</code>
-                  <span className="font-bold text-slate-800 underline decoration-2 decoration-indigo-200">Heading</span>
+                  <code className="bg-gray-100 px-1.5 py-0.5 rounded text-indigo-600 font-mono"># Heading</code>
+                  <span className="font-bold text-slate-800 underline decoration-2 decoration-indigo-200">Heading 1</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <code className="bg-gray-100 px-1.5 py-0.5 rounded text-indigo-600 font-mono">&gt; Qt</code>
+                  <code className="bg-gray-100 px-1.5 py-0.5 rounded text-indigo-600 font-mono">&gt; Quote</code>
                   <span className="border-l-2 border-indigo-400 pl-2 text-slate-500 italic">Quote</span>
                 </div>
+                <div className="flex items-center justify-between">
+                  <code className="bg-gray-100 px-1.5 py-0.5 rounded text-indigo-600 font-mono">- List</code>
+                  <div className="flex items-center gap-1 text-slate-600">
+                    <div className="w-1 h-1 bg-slate-400 rounded-full"></div>
+                    <span>List Item</span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <code className="bg-gray-100 px-1.5 py-0.5 rounded text-indigo-600 font-mono">`Code`</code>
+                  <span className="bg-indigo-50 text-indigo-600 px-1 rounded border border-indigo-100">Code</span>
+                </div>
+              </div>
+              
+              <div className="mt-4 pt-3 border-t border-gray-100 text-[10px] text-slate-400 leading-relaxed">
+                Tips: Use <code className="font-mono text-slate-500">---</code> for a divider line.
               </div>
             </div>
           </div>
@@ -437,10 +454,10 @@ export default function CardGenerator() {
 
         {/* Resizer Handle (Desktop Only) */}
         <div
-          className="hidden lg:block absolute top-0 right-0 w-1 h-full cursor-col-resize group-hover/sidebar:bg-indigo-500/50 hover:bg-indigo-500 transition-colors z-50"
+          className="hidden lg:block absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-indigo-500 transition-colors z-50 group/resizer"
           onMouseDown={startResizing}
         >
-           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-8 bg-white border border-gray-200 rounded-full shadow-sm flex items-center justify-center opacity-0 group-hover/sidebar:opacity-100 transition-opacity pointer-events-none">
+           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-8 bg-white border border-gray-200 rounded-full shadow-sm flex items-center justify-center opacity-0 group-hover/resizer:opacity-100 transition-opacity pointer-events-none">
              <GripVertical size={12} className="text-slate-400" />
            </div>
         </div>
