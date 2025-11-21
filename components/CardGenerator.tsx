@@ -129,6 +129,7 @@ export default function CardGenerator() {
   const [isDragging, setIsDragging] = useState(false);
   const [footerText, setFooterText] = useState("Card Generator");
   const [isMobileEditing, setIsMobileEditing] = useState(false);
+  const [showMobileInfo, setShowMobileInfo] = useState(false);
   
   // Mobile Tab State
   const [mobileActiveTab, setMobileActiveTab] = useState<'theme' | 'font' | 'style'>('theme');
@@ -198,6 +199,63 @@ export default function CardGenerator() {
       )}
     >
       
+      {/* --- MOBILE INFO MODAL --- */}
+      {showMobileInfo && (
+        <div 
+          className="lg:hidden fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-6 animate-in fade-in duration-200" 
+          onClick={() => setShowMobileInfo(false)}
+        >
+          <div 
+            className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl animate-in slide-in-from-bottom-4 duration-300"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4 pb-3 border-b border-gray-100">
+              <div className="text-sm font-bold text-slate-900 uppercase tracking-wider">Markdown Guide</div>
+              <button 
+                onClick={() => setShowMobileInfo(false)}
+                className="p-1.5 rounded-full hover:bg-gray-100 text-slate-400 transition-colors"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            
+            <div className="space-y-3 text-sm">
+              <div className="flex items-center justify-between">
+                <code className="bg-gray-100 px-2 py-1 rounded text-indigo-600 font-mono text-xs">**Bold**</code>
+                <span className="font-bold text-slate-600">Bold Text</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <code className="bg-gray-100 px-2 py-1 rounded text-indigo-600 font-mono text-xs">*Italic*</code>
+                <span className="italic text-slate-600">Italic Text</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <code className="bg-gray-100 px-2 py-1 rounded text-indigo-600 font-mono text-xs"># Heading</code>
+                <span className="font-bold text-slate-800">Heading 1</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <code className="bg-gray-100 px-2 py-1 rounded text-indigo-600 font-mono text-xs">&gt; Quote</code>
+                <span className="border-l-2 border-indigo-400 pl-2 text-slate-500 italic">Quote</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <code className="bg-gray-100 px-2 py-1 rounded text-indigo-600 font-mono text-xs">- List</code>
+                <div className="flex items-center gap-1 text-slate-600">
+                  <div className="w-1.5 h-1.5 bg-slate-400 rounded-full"></div>
+                  <span>List Item</span>
+                </div>
+              </div>
+              <div className="flex items-center justify-between">
+                <code className="bg-gray-100 px-2 py-1 rounded text-indigo-600 font-mono text-xs">`Code`</code>
+                <span className="bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded border border-indigo-100">Code</span>
+              </div>
+            </div>
+            
+            <div className="mt-4 pt-3 border-t border-gray-100 text-xs text-slate-400 leading-relaxed">
+              Tips: Use <code className="font-mono text-slate-500 text-xs">---</code> for divider.
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* --- MOBILE FULLSCREEN EDITOR OVERLAY --- */}
       {isMobileEditing && (
         <div className="fixed inset-0 z-50 bg-white flex flex-col animate-in slide-in-from-bottom-10 duration-200 lg:hidden">
@@ -477,6 +535,14 @@ export default function CardGenerator() {
                backgroundSize: '20px 20px' 
              }}>
         </div>
+
+        {/* Mobile Info Icon (Fixed Top Right) */}
+        <button 
+          className="lg:hidden fixed top-4 right-4 z-40 p-3 bg-white/90 backdrop-blur-md border border-gray-200 rounded-full shadow-xl text-slate-400 hover:text-indigo-600 transition-all active:scale-95"
+          onClick={() => setShowMobileInfo(true)}
+        >
+          <Info size={20} />
+        </button>
 
         {/* Scrollable Canvas Area */}
         <div className="flex-1 w-full h-full overflow-y-auto overflow-x-hidden custom-scrollbar">
