@@ -15,7 +15,9 @@ import {
   Layout,
   GripVertical,
   CreditCard,
-  Info
+  Info,
+  X,
+  Check
 } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -126,6 +128,10 @@ export default function CardGenerator() {
   const [sidebarWidth, setSidebarWidth] = useState(400);
   const [isDragging, setIsDragging] = useState(false);
   const [footerText, setFooterText] = useState("Card Generator");
+  const [isMobileEditing, setIsMobileEditing] = useState(false);
+  
+  // Mobile Tab State
+  const [mobileActiveTab, setMobileActiveTab] = useState<'theme' | 'font' | 'style'>('theme');
 
   // Drag Handlers
   const startResizing = useCallback(() => {
@@ -177,19 +183,53 @@ export default function CardGenerator() {
   return (
     <div 
       className={cn(
-        "flex h-screen w-full overflow-hidden bg-white text-slate-900 font-sans",
+        "flex flex-col lg:flex-row h-screen w-full overflow-hidden bg-white text-slate-900 font-sans",
         isDragging && "cursor-col-resize select-none"
       )}
     >
       
-      {/* --- LEFT PANEL: EDITOR & CONTROLS --- */}
+      {/* --- MOBILE FULLSCREEN EDITOR OVERLAY --- */}
+      {isMobileEditing && (
+        <div className="fixed inset-0 z-50 bg-white flex flex-col animate-in slide-in-from-bottom-10 duration-200 lg:hidden">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-white">
+            <span className="font-bold text-slate-800">Edit Content</span>
+            <button 
+              onClick={() => setIsMobileEditing(false)}
+              className="text-indigo-600 font-semibold text-sm flex items-center gap-1 px-3 py-1.5 bg-indigo-50 rounded-full"
+            >
+              <Check size={14} />
+              Done
+            </button>
+          </div>
+          <textarea
+            className="flex-1 w-full p-5 resize-none outline-none font-mono text-base text-slate-700 leading-relaxed"
+            placeholder="Type markdown..."
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            autoFocus
+          />
+          <div className="px-4 py-3 bg-slate-50 border-t border-gray-100 text-xs text-slate-400 flex gap-4 font-mono overflow-x-auto">
+            <span>**Bold**</span>
+            <span>*Italic*</span>
+            <span># Header</span>
+            <span>&gt; Quote</span>
+          </div>
+        </div>
+      )}
+
+      {/* --- LEFT PANEL: EDITOR & CONTROLS (Desktop Sidebar / Mobile Bottom Sheet) --- */}
       <div 
-        style={{ width: sidebarWidth }}
-        className="flex-shrink-0 h-full flex flex-col border-r border-gray-200 bg-white z-20 shadow-lg relative group/sidebar"
+        style={{ '--sidebar-width': `${sidebarWidth}px` } as React.CSSProperties}
+        className={cn(
+          "flex-shrink-0 flex flex-col border-r border-gray-200 bg-white z-20 shadow-lg relative group/sidebar transition-all",
+          // Desktop: Sidebar with dynamic width, Mobile: Full width bottom panel
+          "w-full lg:w-[var(--sidebar-width)]",
+          "h-[40vh] lg:h-full order-2 lg:order-1" // Mobile: 40% height, Desktop: Full height
+        )}
       >
         
-        {/* Header */}
-        <div className="h-14 px-4 border-b border-gray-100 flex items-center gap-3 bg-white shrink-0 relative z-30">
+        {/* Header (Desktop Only) */}
+        <div className="hidden lg:flex h-14 px-4 border-b border-gray-100 items-center gap-3 bg-white shrink-0 relative z-30">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white shadow-md shadow-indigo-200">
               <Sparkles size={16} />
@@ -203,11 +243,12 @@ export default function CardGenerator() {
               <Info size={16} />
             </button>
             
-            {/* Tooltip Content - Pop to the right to avoid covering editor */}
-            <div className="absolute top-0 left-full ml-2 w-72 bg-white border border-gray-200 rounded-xl shadow-2xl p-5 opacity-0 invisible group-hover/info:opacity-100 group-hover/info:visible transition-all duration-200 translate-x-[-8px] group-hover/info:translate-x-0 z-50">
+            {/* Tooltip Content */}
+            <div className="absolute top-full left-0 mt-2 w-72 bg-white border border-gray-200 rounded-xl shadow-2xl p-5 opacity-0 invisible group-hover/info:opacity-100 group-hover/info:visible transition-all duration-200 translate-y-2 group-hover/info:translate-y-0 z-50 pointer-events-none group-hover/info:pointer-events-auto">
               <div className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-3 border-b border-gray-100 pb-2">
                 Markdown Guide
               </div>
+              {/* ... Markdown Guide Content ... */}
               <div className="space-y-2.5 text-xs">
                 <div className="flex items-center justify-between">
                   <code className="bg-gray-100 px-1.5 py-0.5 rounded text-indigo-600 font-mono">**Bold**</code>
@@ -218,35 +259,20 @@ export default function CardGenerator() {
                   <span className="italic text-slate-600">Italic Text</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <code className="bg-gray-100 px-1.5 py-0.5 rounded text-indigo-600 font-mono"># Heading</code>
-                  <span className="font-bold text-slate-800 underline decoration-2 decoration-indigo-200">Heading 1</span>
+                  <code className="bg-gray-100 px-1.5 py-0.5 rounded text-indigo-600 font-mono"># H1</code>
+                  <span className="font-bold text-slate-800 underline decoration-2 decoration-indigo-200">Heading</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <code className="bg-gray-100 px-1.5 py-0.5 rounded text-indigo-600 font-mono">&gt; Quote</code>
+                  <code className="bg-gray-100 px-1.5 py-0.5 rounded text-indigo-600 font-mono">&gt; Qt</code>
                   <span className="border-l-2 border-indigo-400 pl-2 text-slate-500 italic">Quote</span>
                 </div>
-                <div className="flex items-center justify-between">
-                  <code className="bg-gray-100 px-1.5 py-0.5 rounded text-indigo-600 font-mono">- List</code>
-                  <div className="flex items-center gap-1 text-slate-600">
-                    <div className="w-1 h-1 bg-slate-400 rounded-full"></div>
-                    <span>List Item</span>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between">
-                  <code className="bg-gray-100 px-1.5 py-0.5 rounded text-indigo-600 font-mono">`Code`</code>
-                  <span className="bg-indigo-50 text-indigo-600 px-1 rounded border border-indigo-100">Code</span>
-                </div>
-              </div>
-              
-              <div className="mt-4 pt-3 border-t border-gray-100 text-[10px] text-slate-400 leading-relaxed">
-                Tips: Use <code className="font-mono text-slate-500">---</code> for a divider line.
               </div>
             </div>
           </div>
         </div>
 
-        {/* Markdown Editor */}
-        <div className="flex-1 flex flex-col min-h-0">
+        {/* Markdown Editor (Desktop Only - Mobile uses Overlay) */}
+        <div className="hidden lg:flex flex-1 flex-col min-h-0">
           <div className="px-4 py-2 text-xs font-semibold text-slate-400 tracking-wider uppercase mt-2">Content</div>
           <textarea
             className="flex-1 w-full p-4 resize-none outline-none font-mono text-sm text-slate-600 leading-relaxed bg-transparent selection:bg-indigo-100"
@@ -255,7 +281,6 @@ export default function CardGenerator() {
             onChange={(e) => setContent(e.target.value)}
             spellCheck={false}
           />
-          {/* Quick Syntax Hint */}
           <div className="px-4 py-2 bg-slate-50 border-t border-b border-gray-100 text-[10px] text-slate-400 flex gap-3 font-mono">
             <span>**Bold**</span>
             <span>*Italic*</span>
@@ -264,13 +289,34 @@ export default function CardGenerator() {
           </div>
         </div>
 
-        {/* Style Controls (Bottom Half) */}
-        <div className="h-[45%] bg-slate-50 border-t border-gray-200 flex flex-col overflow-y-auto">
-          <div className="p-5 space-y-6">
+        {/* Style Controls (Always Visible - Bottom Half on Desktop, Full Panel on Mobile) */}
+        <div className={cn(
+          "bg-slate-50 border-t border-gray-200 flex flex-col overflow-y-auto",
+          "lg:h-[45%] h-full" // Mobile takes full height of this panel container
+        )}>
+          
+          {/* --- MOBILE TABS HEADER --- */}
+          <div className="lg:hidden flex items-center border-b border-gray-200 bg-white shrink-0">
+            {(['theme', 'font', 'style'] as const).map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setMobileActiveTab(tab)}
+                className={cn(
+                  "flex-1 py-3 text-xs font-bold uppercase tracking-wider transition-colors relative",
+                  mobileActiveTab === tab ? "text-indigo-600 bg-indigo-50/50" : "text-slate-400"
+                )}
+              >
+                {tab}
+                {mobileActiveTab === tab && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-indigo-600" />}
+              </button>
+            ))}
+          </div>
+
+          <div className="p-5 space-y-6 pb-20 lg:pb-5"> {/* Extra padding bottom for mobile overlay controls */}
             
-            {/* Theme Selector */}
-            <div className="space-y-3">
-              <div className="flex items-center gap-2 text-xs font-bold text-slate-500 uppercase tracking-wider">
+            {/* Theme Selector (Visible on Desktop OR Mobile Theme Tab) */}
+            <div className={cn("space-y-3", "lg:block", mobileActiveTab === 'theme' ? "block" : "hidden")}>
+              <div className="hidden lg:flex items-center gap-2 text-xs font-bold text-slate-500 uppercase tracking-wider"> {/* Hidden title on mobile */}
                 <Palette size={12} /> Theme
               </div>
               <div className="grid grid-cols-[repeat(auto-fill,100px)] gap-2 justify-between">
@@ -279,7 +325,7 @@ export default function CardGenerator() {
                     key={key}
                     onClick={() => setTheme(key)}
                     className={cn(
-                      "group relative flex flex-col items-center gap-2 p-2 rounded-xl border transition-all duration-200",
+                      "group relative flex flex-col items-center gap-2 p-2 rounded-xl border transition-all duration-200 flex-shrink-0",
                       theme === key 
                         ? "bg-white border-indigo-500 shadow-sm ring-1 ring-indigo-500/20" 
                         : "bg-white border-gray-200 hover:border-gray-300 hover:bg-gray-50"
@@ -292,22 +338,25 @@ export default function CardGenerator() {
               </div>
             </div>
 
-            {/* Typography Controls */}
-            <div className="space-y-3">
-               <div className="flex items-center gap-2 text-xs font-bold text-slate-500 uppercase tracking-wider">
+            {/* Typography Controls (Visible on Desktop OR Mobile Font Tab) */}
+            <div className={cn("space-y-4", "lg:block lg:space-y-3", mobileActiveTab === 'font' ? "block" : "hidden")}>
+               <div className="hidden lg:flex items-center gap-2 text-xs font-bold text-slate-500 uppercase tracking-wider"> {/* Hidden title on mobile */}
                 <Type size={12} /> Typography
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              
+              {/* Mobile: Stack vertically | Desktop: Grid 2 cols */}
+              <div className="flex flex-col lg:grid lg:grid-cols-2 gap-4">
+                
                 {/* Font Family */}
-                <div className="space-y-1.5">
+                <div className="space-y-1.5 w-full">
                    <label className="text-[10px] text-slate-400 font-medium">Font Family</label>
-                   <div className="flex bg-gray-200/50 p-1 rounded-lg">
+                   <div className="flex bg-gray-200/50 p-1 rounded-lg w-full">
                       {(Object.keys(FONTS) as Array<keyof typeof FONTS>).map((f) => (
                         <button
                           key={f}
                           onClick={() => setFont(f)}
                           className={cn(
-                            "flex-1 py-1.5 text-xs font-medium rounded-md transition-all",
+                            "flex-1 py-2 lg:py-1.5 text-xs font-medium rounded-md transition-all",
                             font === f ? "bg-white text-indigo-600 shadow-sm" : "text-slate-500 hover:text-slate-700"
                           )}
                         >
@@ -316,16 +365,17 @@ export default function CardGenerator() {
                       ))}
                    </div>
                 </div>
+
                 {/* Font Size */}
-                 <div className="space-y-1.5">
+                 <div className="space-y-1.5 w-full">
                    <label className="text-[10px] text-slate-400 font-medium">Size</label>
-                   <div className="flex bg-gray-200/50 p-1 rounded-lg">
+                   <div className="flex bg-gray-200/50 p-1 rounded-lg w-full">
                       {(Object.keys(SIZES) as Array<keyof typeof SIZES>).map((s) => (
                         <button
                           key={s}
                           onClick={() => setFontSize(s)}
                           className={cn(
-                            "flex-1 py-1.5 text-xs font-medium rounded-md transition-all",
+                            "flex-1 py-2 lg:py-1.5 text-xs font-medium rounded-md transition-all",
                             fontSize === s ? "bg-white text-indigo-600 shadow-sm" : "text-slate-500 hover:text-slate-700"
                           )}
                         >
@@ -337,9 +387,9 @@ export default function CardGenerator() {
               </div>
             </div>
 
-            {/* Footer Text & Window Controls */}
-             <div className="space-y-3">
-                <div className="flex items-center gap-2 text-xs font-bold text-slate-500 uppercase tracking-wider">
+            {/* Footer Text & Window Controls (Visible on Desktop OR Mobile Style Tab) */}
+             <div className={cn("space-y-3", "lg:block", mobileActiveTab === 'style' ? "block" : "hidden")}>
+                <div className="hidden lg:flex items-center gap-2 text-xs font-bold text-slate-500 uppercase tracking-wider"> {/* Hidden title on mobile */}
                   <Layout size={12} /> Appearance
                 </div>
                 
@@ -378,9 +428,9 @@ export default function CardGenerator() {
           </div>
         </div>
 
-        {/* Resizer Handle */}
+        {/* Resizer Handle (Desktop Only) */}
         <div
-          className="absolute top-0 right-0 w-1 h-full cursor-col-resize group-hover/sidebar:bg-indigo-500/50 hover:bg-indigo-500 transition-colors z-50"
+          className="hidden lg:block absolute top-0 right-0 w-1 h-full cursor-col-resize group-hover/sidebar:bg-indigo-500/50 hover:bg-indigo-500 transition-colors z-50"
           onMouseDown={startResizing}
         >
            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-8 bg-white border border-gray-200 rounded-full shadow-sm flex items-center justify-center opacity-0 group-hover/sidebar:opacity-100 transition-opacity pointer-events-none">
@@ -391,7 +441,8 @@ export default function CardGenerator() {
 
       {/* --- RIGHT PANEL: PREVIEW --- */}
       <div className={cn(
-        "relative flex-1 h-full flex flex-col overflow-hidden transition-colors duration-500",
+        "relative flex flex-col overflow-hidden transition-colors duration-500 order-1 lg:order-2",
+        "flex-1", // Takes remaining space (60% on mobile)
         THEMES[theme].bg
       )}>
         
@@ -405,17 +456,23 @@ export default function CardGenerator() {
 
         {/* Scrollable Canvas Area */}
         <div className="flex-1 w-full h-full overflow-y-auto overflow-x-hidden custom-scrollbar">
-          <div className="min-h-full flex flex-col items-center p-12 sm:p-20">
+          <div className="min-h-full flex flex-col items-center p-8 sm:p-20 pb-32 lg:pb-20">
             
             <div 
               className="my-auto transition-transform duration-200 ease-out origin-center will-change-transform"
               style={{ transform: `scale(${scale / 100})` }}
+              onClick={() => {
+                // Only trigger edit mode on mobile if click target is within card area
+                if (window.innerWidth < 1024) {
+                  setIsMobileEditing(true);
+                }
+              }}
             >
               {/* The Card Component */}
               <div 
                 ref={cardRef}
                 className={cn(
-                  "w-[520px] min-h-[300px] rounded-xl p-12 flex flex-col relative transition-all duration-500",
+                  "w-[520px] min-h-[300px] rounded-xl p-12 flex flex-col relative transition-all duration-500 cursor-pointer lg:cursor-default", // Pointer on mobile to indicate editable
                   THEMES[theme].card,
                   FONTS[font].class
                 )}
@@ -431,7 +488,7 @@ export default function CardGenerator() {
 
                 {/* Content */}
                 <div className={cn(
-                  "prose leading-relaxed max-w-none",
+                  "prose leading-relaxed max-w-none pointer-events-none lg:pointer-events-auto", // Disable text selection on mobile preview to prevent keyboard
                   // Base Styles
                   "prose-headings:font-bold prose-headings:tracking-tight prose-headings:mb-4",
                   "prose-p:font-medium prose-p:opacity-90 prose-p:my-3",
@@ -459,18 +516,23 @@ export default function CardGenerator() {
           </div>
         </div>
 
-        {/* --- FLOATING ACTION BAR --- */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-1 p-1.5 bg-white/90 backdrop-blur-xl border border-white/20 shadow-[0_8px_30px_rgb(0,0,0,0.12)] rounded-full z-30 animate-in slide-in-from-bottom-6">
+        {/* --- FLOATING ACTION BAR (Export Only on Mobile maybe? No, keep Zoom) --- */}
+        {/* On mobile, this bar floats above the Style Controls. We might want to adjust position */}
+        <div className={cn(
+          "absolute left-1/2 -translate-x-1/2 flex items-center gap-1 p-1.5 bg-white/90 backdrop-blur-xl border border-white/20 shadow-[0_8px_30px_rgb(0,0,0,0.12)] rounded-full z-30 animate-in slide-in-from-bottom-6",
+          "bottom-6 lg:bottom-8" // Adjust bottom position
+        )}>
             
             {/* Zoom Controls */}
             <div className="flex items-center gap-2 px-3 py-1.5">
               <button 
-                onClick={() => setScale(s => Math.max(50, s - 10))}
+                onClick={(e) => { e.stopPropagation(); setScale(s => Math.max(50, s - 10)); }}
                 className="text-slate-500 hover:text-slate-800 transition-colors"
               >
                 <Minus size={16} />
               </button>
-              <div className="flex flex-col w-24 gap-1">
+              {/* Hide Slider on Mobile to save space */}
+              <div className="flex-col w-24 gap-1 hidden sm:flex">
                 <input
                   type="range"
                   min="50"
@@ -481,7 +543,7 @@ export default function CardGenerator() {
                 />
               </div>
               <button 
-                 onClick={() => setScale(s => Math.min(150, s + 10))}
+                 onClick={(e) => { e.stopPropagation(); setScale(s => Math.min(150, s + 10)); }}
                  className="text-slate-500 hover:text-slate-800 transition-colors"
               >
                 <Plus size={16} />
@@ -493,7 +555,7 @@ export default function CardGenerator() {
 
             {/* Export Action */}
             <button
-              onClick={handleExport}
+              onClick={(e) => { e.stopPropagation(); handleExport(); }}
               disabled={isExporting}
               className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-6 py-2 rounded-full font-medium text-sm transition-all shadow-lg hover:shadow-xl active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
             >
