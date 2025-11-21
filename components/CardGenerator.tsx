@@ -480,7 +480,7 @@ export default function CardGenerator() {
 
         {/* Scrollable Canvas Area */}
         <div className="flex-1 w-full h-full overflow-y-auto overflow-x-hidden custom-scrollbar">
-          <div className="min-h-full flex flex-col items-center p-8 sm:p-20 pb-32 lg:pb-20">
+          <div className="min-h-full flex flex-col items-center py-4 px-4 pb-24 sm:p-20 lg:pb-20">
             
             <div 
               className="my-auto transition-transform duration-200 ease-out origin-center will-change-transform"
