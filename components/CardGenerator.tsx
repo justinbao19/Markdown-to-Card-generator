@@ -185,7 +185,7 @@ export default function CardGenerator() {
       {/* --- LEFT PANEL: EDITOR & CONTROLS --- */}
       <div 
         style={{ width: sidebarWidth }}
-        className="flex-shrink-0 h-full flex flex-col border-r border-gray-200 bg-white z-20 shadow-lg relative group"
+        className="flex-shrink-0 h-full flex flex-col border-r border-gray-200 bg-white z-20 shadow-lg relative group/sidebar"
       >
         
         {/* Header */}
@@ -198,13 +198,13 @@ export default function CardGenerator() {
           </div>
 
           {/* Info Tooltip */}
-          <div className="relative group">
+          <div className="relative group/info flex-shrink-0">
             <button className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition-all">
               <Info size={16} />
             </button>
             
-            {/* Tooltip Content */}
-            <div className="absolute top-full left-0 mt-2 w-72 bg-white border border-gray-200 rounded-xl shadow-2xl p-5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 translate-y-2 group-hover:translate-y-0 z-50 pointer-events-none group-hover:pointer-events-auto">
+            {/* Tooltip Content - Pop to the right to avoid covering editor */}
+            <div className="absolute top-0 left-full ml-2 w-72 bg-white border border-gray-200 rounded-xl shadow-2xl p-5 opacity-0 invisible group-hover/info:opacity-100 group-hover/info:visible transition-all duration-200 translate-x-[-8px] group-hover/info:translate-x-0 z-50">
               <div className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-3 border-b border-gray-100 pb-2">
                 Markdown Guide
               </div>
@@ -380,10 +380,10 @@ export default function CardGenerator() {
 
         {/* Resizer Handle */}
         <div
-          className="absolute top-0 right-0 w-1 h-full cursor-col-resize group-hover:bg-indigo-500/50 hover:bg-indigo-500 transition-colors z-50"
+          className="absolute top-0 right-0 w-1 h-full cursor-col-resize group-hover/sidebar:bg-indigo-500/50 hover:bg-indigo-500 transition-colors z-50"
           onMouseDown={startResizing}
         >
-           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-8 bg-white border border-gray-200 rounded-full shadow-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-8 bg-white border border-gray-200 rounded-full shadow-sm flex items-center justify-center opacity-0 group-hover/sidebar:opacity-100 transition-opacity pointer-events-none">
              <GripVertical size={12} className="text-slate-400" />
            </div>
         </div>
