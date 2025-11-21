@@ -68,6 +68,20 @@ const THEMES = {
     card: "bg-[#1E293B] border border-blue-500/20 shadow-2xl shadow-blue-900/20",
     text: "prose-invert prose-headings:text-blue-200 prose-p:text-slate-300",
     preview: "bg-[#1E293B]"
+  },
+  skyblue: {
+    name: "Filo Blue",
+    bg: "bg-[#E9F6FF]", // Light 05
+    card: "bg-white border border-[#CCE7FB] shadow-[0_8px_30px_rgb(34,160,251,0.1)]", // Light 04 border, Light 02 shadow
+    text: "prose-slate prose-headings:text-[#22A0FB] prose-a:text-[#22A0FB]", // Light 02 text
+    preview: "bg-[#9CD5FF]" // Light 01
+  },
+  deepocean: {
+    name: "Deep Ocean",
+    bg: "bg-gradient-to-br from-[#22A0FB] to-[#0F172A]", // Light 02 -> Dark
+    card: "bg-[#0F172A]/90 backdrop-blur-md border border-[#9CD5FF]/30 shadow-2xl", // Light 01 border glow
+    text: "prose-invert prose-headings:text-[#C1E5FF] prose-p:text-[#E9F6FF]/80", // Light 03 & 05 text
+    preview: "bg-[#22A0FB]" // Light 02
   }
 };
 
