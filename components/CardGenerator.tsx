@@ -163,6 +163,13 @@ export default function CardGenerator() {
     };
   }, [resize, stopResizing]);
 
+  // Set initial scale for mobile on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+      setScale(70);
+    }
+  }, []);
+
   // Export
   const handleExport = useCallback(async () => {
     if (cardRef.current === null) return;
