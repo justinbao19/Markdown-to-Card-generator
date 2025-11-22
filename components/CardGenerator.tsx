@@ -307,7 +307,7 @@ export default function CardGenerator() {
             <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white shadow-md shadow-indigo-200">
               <Sparkles size={16} />
             </div>
-            <span className="font-bold text-slate-800 tracking-tight">Card Studio</span>
+            <span className="font-bold text-slate-800 tracking-tight">FlipMark</span>
           </div>
 
           {/* Info Tooltip */}
