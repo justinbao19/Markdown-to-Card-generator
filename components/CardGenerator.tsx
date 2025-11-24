@@ -17,7 +17,34 @@ import {
   CreditCard,
   Info,
   X,
-  Check
+  Check,
+  Lock,
+  TerminalSquare,
+  FileText,
+  ChevronRight,
+  Circle,
+  Command,
+  Apple,
+  Zap,
+  Heart,
+  Star,
+  Box,
+  Layers,
+  Code,
+  Cloud,
+  Cpu,
+  Globe,
+  Hash,
+  Feather,
+  Rocket,
+  Smile,
+  Ghost,
+  Flame,
+  Droplets,
+  AlignLeft,
+  RotateCw,
+  Reply,
+  CornerUpLeft
 } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -28,70 +55,101 @@ function cn(...inputs: ClassValue[]) {
 }
 
 // --- Constants ---
+const SYMBOLS = {
+  sparkles: { icon: Sparkles },
+  zap: { icon: Zap },
+  star: { icon: Star },
+  heart: { icon: Heart },
+  globe: { icon: Globe },
+  code: { icon: Code },
+  feather: { icon: Feather },
+  rocket: { icon: Rocket },
+  smile: { icon: Smile },
+  ghost: { icon: Ghost },
+  flame: { icon: Flame },
+  droplets: { icon: Droplets },
+  command: { icon: Command },
+  apple: { icon: Apple },
+  circle: { icon: Circle },
+  box: { icon: Box },
+  layers: { icon: Layers },
+  cloud: { icon: Cloud },
+  cpu: { icon: Cpu },
+  hash: { icon: Hash }
+};
+
 const DECORATIONS = {
   none: { name: "None" },
   macos: { name: "macOS" },
   mail: { name: "Filo Mail" },
   browser: { name: "Browser" },
-  terminal: { name: "Terminal" }
+  terminal: { name: "Terminal" },
+  notion: { name: "Notion" }
 };
 
 const THEMES = {
   minimal: {
     name: "Notion Light",
     bg: "bg-[#F3F4F6]",
-    card: "bg-white border border-gray-200 shadow-xl",
+    card: "bg-white border border-gray-200 shadow-xl text-slate-900",
     text: "prose-slate",
     preview: "bg-white"
   },
   obsidian: {
     name: "Dev Dark",
     bg: "bg-[#09090B]",
-    card: "bg-[#18181B] border border-white/10 shadow-2xl shadow-black/50",
+    card: "bg-[#18181B] border border-white/10 shadow-2xl shadow-black/50 text-slate-200",
     text: "prose-invert prose-pre:bg-[#27272A]",
     preview: "bg-[#18181B]"
   },
   aurora: {
     name: "OpenAI Glass",
-    bg: "bg-gradient-to-br from-rose-100 to-teal-100",
-    card: "bg-white/70 backdrop-blur-xl border border-white/40 shadow-xl",
-    text: "prose-slate prose-headings:text-slate-800",
-    preview: "bg-gradient-to-br from-rose-200 to-teal-200"
+    bg: "bg-gray-50", // Plain background
+    card: "bg-gradient-to-br from-violet-50 via-purple-50 to-fuchsia-50 border border-violet-100 shadow-xl text-slate-800", // Violet/Purple Gradient
+    text: "prose-slate prose-headings:text-violet-700 prose-a:text-purple-600",
+    preview: "bg-gradient-to-br from-violet-200 to-fuchsia-200"
   },
   bamboo: {
     name: "Bamboo Forest",
     bg: "bg-stone-100",
-    card: "bg-[#F0FDF4] border border-green-100 shadow-[0_8px_30px_rgb(0,0,0,0.06)]",
+    card: "bg-[#F0FDF4] border border-green-100 shadow-[0_8px_30px_rgb(0,0,0,0.06)] text-green-900",
     text: "prose-stone prose-headings:text-green-800",
     preview: "bg-[#F0FDF4]"
   },
   sunset: {
     name: "Sunset Vibes",
     bg: "bg-slate-50",
-    card: "bg-gradient-to-br from-orange-50 to-indigo-50 border border-orange-100/50 shadow-lg",
+    card: "bg-gradient-to-br from-orange-50 to-indigo-50 border border-orange-100/50 shadow-lg text-indigo-950",
     text: "prose-slate prose-headings:text-indigo-900",
     preview: "bg-gradient-to-br from-orange-200 to-indigo-200"
   },
   midnight: {
     name: "Midnight Blue",
     bg: "bg-[#0F172A]",
-    card: "bg-[#1E293B] border border-blue-500/20 shadow-2xl shadow-blue-900/20",
+    card: "bg-[#1E293B] border border-blue-500/20 shadow-2xl shadow-blue-900/20 text-blue-100",
     text: "prose-invert prose-headings:text-blue-200 prose-p:text-slate-300",
     preview: "bg-[#1E293B]"
   },
   skyblue: {
     name: "Filo Blue",
     bg: "bg-[#E9F6FF]", // Light 05
-    card: "bg-white border border-[#CCE7FB] shadow-[0_8px_30px_rgb(34,160,251,0.1)]", // Light 04 border, Light 02 shadow
+    card: "bg-white border border-[#CCE7FB] shadow-[0_8px_30px_rgb(34,160,251,0.1)] text-slate-800", // Light 04 border, Light 02 shadow
     text: "prose-slate prose-headings:text-[#22A0FB] prose-a:text-[#22A0FB]", // Light 02 text
     preview: "bg-[#9CD5FF]" // Light 01
   },
   deepocean: {
     name: "Deep Ocean",
-    bg: "bg-gradient-to-br from-[#22A0FB] to-[#0F172A]", // Light 02 -> Dark
-    card: "bg-[#0F172A]/90 backdrop-blur-md border border-[#9CD5FF]/30 shadow-2xl", // Light 01 border glow
-    text: "prose-invert prose-headings:text-[#C1E5FF] prose-p:text-[#E9F6FF]/80", // Light 03 & 05 text
-    preview: "bg-[#22A0FB]" // Light 02
+    bg: "bg-slate-100", // Plain light background
+    card: "bg-gradient-to-br from-cyan-100 via-blue-100 to-indigo-100 border border-blue-200/50 shadow-2xl shadow-blue-500/5 text-slate-800", // Fresh Ocean Gradient
+    text: "prose-slate prose-headings:text-blue-700 prose-a:text-cyan-600",
+    preview: "bg-gradient-to-br from-cyan-400 to-blue-500"
+  },
+  sunsetbloom: {
+    name: "Sunset Bloom",
+    bg: "bg-orange-50/50", // Plain warm background
+    card: "bg-gradient-to-br from-rose-100 via-orange-100 to-amber-100 border border-rose-200 shadow-[0_8px_30px_rgb(251,113,133,0.15)] text-rose-950", // Gradient Card
+    text: "prose-slate prose-headings:text-rose-600 prose-a:text-orange-500",
+    preview: "bg-gradient-to-br from-rose-300 to-orange-300"
   }
 };
 
@@ -135,7 +193,8 @@ export default function CardGenerator() {
   const [isExporting, setIsExporting] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(400);
   const [isDragging, setIsDragging] = useState(false);
-  const [footerText, setFooterText] = useState("Card Generator");
+  const [footerText, setFooterText] = useState("FlipMark");
+  const [footerIcon, setFooterIcon] = useState<keyof typeof SYMBOLS>('sparkles');
   const [isMobileEditing, setIsMobileEditing] = useState(false);
   const [showMobileInfo, setShowMobileInfo] = useState(false);
 
@@ -502,6 +561,31 @@ export default function CardGenerator() {
                    />
                 </div>
 
+                {/* Symbol Selector */}
+                <div className="space-y-1.5">
+                  <span className="text-[10px] text-slate-400 font-medium">Brand Symbol</span>
+                  <div className="flex flex-wrap gap-1.5 p-2 bg-white rounded-xl border border-gray-200">
+                    {(Object.keys(SYMBOLS) as Array<keyof typeof SYMBOLS>).map((s) => {
+                      const IconComponent = SYMBOLS[s].icon;
+                      return (
+                        <button 
+                          key={s}
+                          onClick={() => setFooterIcon(s)}
+                          className={cn(
+                            "p-1.5 rounded-md transition-all",
+                            footerIcon === s 
+                              ? "bg-indigo-50 text-indigo-600 shadow-sm" 
+                              : "text-slate-400 hover:bg-gray-50 hover:text-slate-600"
+                          )}
+                          title={s}
+                        >
+                          <IconComponent size={14} />
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+
                 {/* Window Decoration Selector */}
                 <div className="space-y-1.5">
                   <span className="text-[10px] text-slate-400 font-medium">Window Style</span>
@@ -601,8 +685,8 @@ export default function CardGenerator() {
                     {/* Filo Mail Style */}
                     {decoration === 'mail' && (
                       <div className="flex-1 flex items-center justify-between border-b border-black/10 pb-2">
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-full bg-indigo-100 overflow-hidden flex items-center justify-center border border-black/5">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-indigo-100 overflow-hidden flex items-center justify-center border border-black/5 shrink-0">
                             {/* Try to load Filo Icon, fallback to text if missing */}
                             <img 
                               src="/assets/filo-icon.svg" 
@@ -615,36 +699,78 @@ export default function CardGenerator() {
                             />
                             <span className="hidden text-indigo-600 font-bold text-xs">FM</span>
                           </div>
-                          <div className="flex flex-col">
-                            <span className="text-[10px] font-bold opacity-70 leading-tight">From: Filo Mail</span>
-                            <span className="text-[8px] opacity-50 leading-tight">To: You</span>
+                          <div className="flex flex-col min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="text-[11px] font-bold opacity-90 leading-tight truncate">Filo Mail</span>
+                              <span className="text-[8px] text-indigo-600 bg-indigo-50 px-1.5 rounded-full font-medium">Inbox</span>
+                            </div>
+                            <span className="text-[9px] opacity-50 leading-tight truncate">To: You &lt;me@filomail.com&gt;</span>
                           </div>
                         </div>
-                        <div className="px-2 py-0.5 bg-black/5 rounded text-[8px] font-mono opacity-50">
-                          {new Date().toLocaleDateString()}
+                        
+                        <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-2 text-black/40">
+                            <CornerUpLeft size={12} className="hover:text-black/60 transition-colors" />
+                            <Star size={12} className="hover:text-yellow-400 transition-colors" />
+                          </div>
+                          <div className="px-2 py-0.5 bg-black/5 rounded text-[8px] font-mono opacity-50 hidden sm:block">
+                            {new Date().toLocaleDateString()}
+                          </div>
                         </div>
                       </div>
                     )}
 
-                    {/* Browser Style */}
+                    {/* Browser Style (Safari) */}
                     {decoration === 'browser' && (
-                      <div className="flex-1 flex items-center gap-3 bg-black/5 rounded-lg px-3 py-1.5">
-                        <div className="flex gap-1.5">
-                          <div className="w-2 h-2 rounded-full bg-black/20" />
-                          <div className="w-2 h-2 rounded-full bg-black/20" />
-                        </div>
-                        <div className="flex-1 bg-white/50 rounded px-2 py-0.5 text-[8px] opacity-50 text-center font-mono">
-                          filo.design
+                      <div className="flex-1 flex flex-col gap-3">
+                        {/* Optional: Window Dots Row if we want full browser look, or just the address bar */}
+                        {/* Let's put address bar directly as the header content */}
+                        <div className="flex items-center gap-3 w-full">
+                           <div className="flex gap-1.5 shrink-0">
+                              <div className="w-2.5 h-2.5 rounded-full bg-[#FF5F57]" />
+                              <div className="w-2.5 h-2.5 rounded-full bg-[#FEBC2E]" />
+                              <div className="w-2.5 h-2.5 rounded-full bg-[#28C840]" />
+                           </div>
+                           {/* Safari Address Bar */}
+                           <div className="flex-1 bg-current/5 rounded-lg flex items-center justify-between px-3 py-1 h-7 border border-black/5 shadow-sm">
+                              <AlignLeft size={12} className="opacity-50" />
+                              <div className="flex items-center gap-1.5 opacity-90 text-current">
+                                <Lock size={10} className="opacity-40" />
+                                <span className="text-[11px] font-semibold tracking-tight -mb-0.5">filomail.com</span>
+                              </div>
+                              <RotateCw size={12} className="opacity-50" />
+                           </div>
+                           <div className="w-10" /> {/* Spacer to balance dots */}
                         </div>
                       </div>
                     )}
 
                     {/* Terminal Style */}
                     {decoration === 'terminal' && (
-                      <div className="flex items-center gap-2 opacity-50 font-mono text-xs">
-                        <span className="text-emerald-500">➜</span>
-                        <span>~</span>
-                        <span className="animate-pulse">_</span>
+                      <div className="flex-1 flex items-center justify-between bg-black/80 rounded-lg px-3 py-1.5 shadow-sm">
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-2 h-2 rounded-full bg-red-500/80" />
+                          <div className="w-2 h-2 rounded-full bg-yellow-500/80" />
+                          <div className="w-2 h-2 rounded-full bg-green-500/80" />
+                        </div>
+                        <div className="flex items-center gap-2 opacity-80 font-mono text-[10px] text-white">
+                          <TerminalSquare size={10} />
+                          <span>zsh</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Notion Style */}
+                    {decoration === 'notion' && (
+                      <div className="flex items-center gap-2 text-xs opacity-70">
+                        <div className="flex items-center gap-1">
+                          <FileText size={14} />
+                          <span className="font-medium">Workspace</span>
+                        </div>
+                        <ChevronRight size={12} className="opacity-50" />
+                        <div className="flex items-center gap-1">
+                          <span className="font-medium">Page</span>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -668,10 +794,14 @@ export default function CardGenerator() {
 
                 {/* Footer */}
                 <div className="mt-12 pt-6 border-t border-black/5 flex items-center justify-between opacity-30 select-none">
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-4 h-4 bg-current rounded-full opacity-20" />
-                    <span className="text-[10px] uppercase tracking-widest font-bold font-sans">{footerText}</span>
-                  </div>
+                   <div className="flex items-center gap-1.5">
+                     {/* Dynamic Symbol */}
+                     {(() => {
+                       const IconComponent = SYMBOLS[footerIcon].icon;
+                       return <IconComponent size={14} className="text-current" />;
+                     })()}
+                     <span className="text-[10px] uppercase tracking-widest font-bold font-sans">{footerText}</span>
+                   </div>
                 </div>
 
               </div>
