@@ -28,6 +28,14 @@ function cn(...inputs: ClassValue[]) {
 }
 
 // --- Constants ---
+const DECORATIONS = {
+  none: { name: "None" },
+  macos: { name: "macOS" },
+  mail: { name: "Filo Mail" },
+  browser: { name: "Browser" },
+  terminal: { name: "Terminal" }
+};
+
 const THEMES = {
   minimal: {
     name: "Notion Light",
@@ -122,7 +130,7 @@ export default function CardGenerator() {
   const [theme, setTheme] = useState<keyof typeof THEMES>('minimal');
   const [font, setFont] = useState<keyof typeof FONTS>('sans');
   const [fontSize, setFontSize] = useState<keyof typeof SIZES>('lg');
-  const [showWindowControls, setShowWindowControls] = useState(true);
+  const [decoration, setDecoration] = useState<keyof typeof DECORATIONS>('macos');
   const [scale, setScale] = useState(100);
   const [isExporting, setIsExporting] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(400);
@@ -480,36 +488,40 @@ export default function CardGenerator() {
                 <Layout size={12} /> Appearance
               </div>
 
-              {/* Footer Text Input */}
-              <div className="flex items-center gap-2 p-2 bg-white rounded-xl border border-gray-200">
-                <div className="p-1.5 bg-gray-100 text-slate-500 rounded-md">
-                  <CreditCard size={14} />
+                {/* Footer Text Input */}
+                <div className="flex items-center gap-2 p-2 bg-white rounded-xl border border-gray-200">
+                   <div className="p-1.5 bg-gray-100 text-slate-500 rounded-md">
+                      <CreditCard size={14} />
+                   </div>
+                   <input 
+                      type="text"
+                      value={footerText}
+                      onChange={(e) => setFooterText(e.target.value)}
+                      className="flex-1 text-xs font-medium text-slate-700 outline-none placeholder:text-slate-400"
+                      placeholder="Footer text..."
+                   />
                 </div>
-                <input
-                  type="text"
-                  value={footerText}
-                  onChange={(e) => setFooterText(e.target.value)}
-                  className="flex-1 text-xs font-medium text-slate-700 outline-none placeholder:text-slate-400"
-                  placeholder="Footer text..."
-                />
-              </div>
 
-              {/* Window Toggle */}
-              <div className="flex items-center justify-between p-3 bg-white rounded-xl border border-gray-200">
-                <span className="text-xs font-medium text-slate-700 pl-1">Window Decoration</span>
-                <button
-                  onClick={() => setShowWindowControls(!showWindowControls)}
-                  className={cn(
-                    "w-10 h-5 rounded-full transition-colors relative",
-                    showWindowControls ? "bg-indigo-600" : "bg-gray-200"
-                  )}
-                >
-                  <div className={cn(
-                    "absolute top-1 left-1 w-3 h-3 bg-white rounded-full transition-transform shadow-sm",
-                    showWindowControls ? "translate-x-5" : "translate-x-0"
-                  )} />
-                </button>
-              </div>
+                {/* Window Decoration Selector */}
+                <div className="space-y-1.5">
+                  <span className="text-[10px] text-slate-400 font-medium">Window Style</span>
+                  <div className="grid grid-cols-3 gap-2">
+                    {(Object.keys(DECORATIONS) as Array<keyof typeof DECORATIONS>).map((d) => (
+                      <button 
+                        key={d}
+                        onClick={() => setDecoration(d)}
+                        className={cn(
+                          "py-1.5 text-[10px] font-medium rounded-md transition-all border",
+                          decoration === d 
+                            ? "bg-indigo-50 border-indigo-200 text-indigo-700" 
+                            : "bg-white border-gray-200 text-slate-600 hover:border-gray-300"
+                        )}
+                      >
+                        {DECORATIONS[d].name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
             </div>
 
           </div>
@@ -566,7 +578,7 @@ export default function CardGenerator() {
               }}
             >
               {/* The Card Component */}
-              <div
+              <div 
                 ref={cardRef}
                 className={cn(
                   "w-[520px] min-h-[300px] rounded-xl p-12 flex flex-col relative transition-all duration-500 cursor-pointer lg:cursor-default", // Pointer on mobile to indicate editable
@@ -574,12 +586,67 @@ export default function CardGenerator() {
                   FONTS[font].class
                 )}
               >
-                {/* Window Controls */}
-                {showWindowControls && (
-                  <div className="flex gap-2 mb-8 opacity-80 select-none">
-                    <div className="w-3 h-3 rounded-full bg-[#FF5F57] shadow-sm" />
-                    <div className="w-3 h-3 rounded-full bg-[#FEBC2E] shadow-sm" />
-                    <div className="w-3 h-3 rounded-full bg-[#28C840] shadow-sm" />
+                {/* Window Controls Header */}
+                {decoration !== 'none' && (
+                  <div className="flex items-center gap-4 mb-8 select-none h-6">
+                    {/* macOS Style */}
+                    {decoration === 'macos' && (
+                      <div className="flex gap-2">
+                        <div className="w-3 h-3 rounded-full bg-[#FF5F57] shadow-sm" />
+                        <div className="w-3 h-3 rounded-full bg-[#FEBC2E] shadow-sm" />
+                        <div className="w-3 h-3 rounded-full bg-[#28C840] shadow-sm" />
+                      </div>
+                    )}
+
+                    {/* Filo Mail Style */}
+                    {decoration === 'mail' && (
+                      <div className="flex-1 flex items-center justify-between border-b border-black/10 pb-2">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-full bg-indigo-100 overflow-hidden flex items-center justify-center border border-black/5">
+                            {/* Try to load Filo Icon, fallback to text if missing */}
+                            <img 
+                              src="/assets/filo-icon.svg" 
+                              alt="Filo"
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                                e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                              }}
+                            />
+                            <span className="hidden text-indigo-600 font-bold text-xs">FM</span>
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-[10px] font-bold opacity-70 leading-tight">From: Filo Mail</span>
+                            <span className="text-[8px] opacity-50 leading-tight">To: You</span>
+                          </div>
+                        </div>
+                        <div className="px-2 py-0.5 bg-black/5 rounded text-[8px] font-mono opacity-50">
+                          {new Date().toLocaleDateString()}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Browser Style */}
+                    {decoration === 'browser' && (
+                      <div className="flex-1 flex items-center gap-3 bg-black/5 rounded-lg px-3 py-1.5">
+                        <div className="flex gap-1.5">
+                          <div className="w-2 h-2 rounded-full bg-black/20" />
+                          <div className="w-2 h-2 rounded-full bg-black/20" />
+                        </div>
+                        <div className="flex-1 bg-white/50 rounded px-2 py-0.5 text-[8px] opacity-50 text-center font-mono">
+                          filo.design
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Terminal Style */}
+                    {decoration === 'terminal' && (
+                      <div className="flex items-center gap-2 opacity-50 font-mono text-xs">
+                        <span className="text-emerald-500">➜</span>
+                        <span>~</span>
+                        <span className="animate-pulse">_</span>
+                      </div>
+                    )}
                   </div>
                 )}
 
