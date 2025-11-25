@@ -130,6 +130,7 @@ function CodeBlockComponent({ node, updateAttributes, deleteNode, editor }: any)
         
         {/* Code content */}
         <pre className="!m-0 !rounded-none !border-0">
+          {/* @ts-expect-error: Tiptap allows rendering as <code>, but the typings only expose div */}
           <NodeViewContent as="code" />
         </pre>
       </div>

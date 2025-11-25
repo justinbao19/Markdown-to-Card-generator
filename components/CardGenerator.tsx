@@ -1055,20 +1055,52 @@ export default function CardGenerator() {
                 <div className="space-y-1.5">
                   <span className="text-[10px] text-slate-400 font-medium">Canvas Pattern</span>
                   <div className="grid grid-cols-5 gap-2">
-                    {(Object.keys(PATTERNS) as Array<keyof typeof PATTERNS>).map((p) => (
-                      <button 
-                        key={p}
-                        onClick={() => setPattern(p)}
-                        className={cn(
-                          "py-1.5 text-[10px] font-medium rounded-md transition-all border",
-                          pattern === p 
-                            ? "bg-indigo-50 border-indigo-200 text-indigo-700" 
-                            : "bg-white border-gray-200 text-slate-600 hover:border-gray-300"
-                        )}
-                      >
-                        {PATTERNS[p].name}
-                      </button>
-                    ))}
+                    {(Object.keys(PATTERNS) as Array<keyof typeof PATTERNS>).map((p) => {
+                      // Smaller preview sizes for better visibility in buttons
+                      const previewSizes: Record<string, string> = {
+                        dots: "8px 8px",
+                        grid: "10px 10px",
+                        cross: "14px 14px",
+                        lines: "100% 8px",
+                        none: "0"
+                      };
+                      return (
+                        <button 
+                          key={p}
+                          onClick={() => setPattern(p)}
+                          className={cn(
+                            "relative h-12 rounded-lg transition-all border-2 overflow-hidden group/pattern",
+                            pattern === p 
+                              ? "border-indigo-400 ring-2 ring-indigo-200" 
+                              : "border-gray-200 hover:border-gray-300"
+                          )}
+                        >
+                          {/* Pattern Preview Background */}
+                          <div 
+                            className="absolute inset-0 bg-slate-50"
+                            style={{
+                              backgroundImage: PATTERNS[p].css,
+                              backgroundSize: previewSizes[p] || PATTERNS[p].size,
+                            }}
+                          />
+                          {/* Label Overlay */}
+                          <div className={cn(
+                            "absolute inset-x-0 bottom-0 py-0.5 text-[9px] font-medium backdrop-blur-sm transition-colors",
+                            pattern === p 
+                              ? "bg-indigo-500/90 text-white" 
+                              : "bg-white/80 text-slate-600 group-hover/pattern:bg-white/90"
+                          )}>
+                            {PATTERNS[p].name}
+                          </div>
+                          {/* Selected Checkmark */}
+                          {pattern === p && (
+                            <div className="absolute top-1 right-1 w-3.5 h-3.5 bg-indigo-500 rounded-full flex items-center justify-center">
+                              <Check size={8} className="text-white" />
+                            </div>
+                          )}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
             </div>
