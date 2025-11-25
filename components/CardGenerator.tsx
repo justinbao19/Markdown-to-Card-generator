@@ -87,10 +87,39 @@ const DECORATIONS = {
   notion: { name: "Notion" }
 };
 
+const PATTERNS = {
+  dots: { 
+    name: "Dots",
+    css: "radial-gradient(circle, #cbd5e1 1px, transparent 1px)",
+    size: "20px 20px"
+  },
+  grid: { 
+    name: "Grid",
+    css: "linear-gradient(#e2e8f0 1px, transparent 1px), linear-gradient(90deg, #e2e8f0 1px, transparent 1px)",
+    size: "24px 24px"
+  },
+  cross: { 
+    name: "Cross",
+    css: "radial-gradient(circle, transparent 14px, #e2e8f0 14px, #e2e8f0 15px, transparent 15px), radial-gradient(circle, #cbd5e1 2px, transparent 2px)",
+    size: "32px 32px"
+  },
+  lines: { 
+    name: "Lines",
+    css: "linear-gradient(#e2e8f0 1px, transparent 1px)",
+    size: "100% 20px"
+  },
+  none: { 
+    name: "None",
+    css: "none",
+    size: "0"
+  }
+};
+
 const THEMES = {
   minimal: {
     name: "Notion Light",
     bg: "bg-[#F3F4F6]",
+    cssBg: "#F3F4F6",
     card: "bg-white border border-gray-200 shadow-xl text-slate-900",
     text: "prose-slate",
     preview: "bg-white"
@@ -98,56 +127,64 @@ const THEMES = {
   obsidian: {
     name: "Dev Dark",
     bg: "bg-[#09090B]",
-    card: "bg-[#18181B] border border-white/10 shadow-2xl shadow-black/50 text-slate-200",
+    cssBg: "#09090B",
+    card: "bg-[#18181B] border border-white/10 shadow-2xl shadow-black/80 text-slate-200 ring-1 ring-white/5",
     text: "prose-invert prose-pre:bg-[#27272A]",
     preview: "bg-[#18181B]"
   },
   aurora: {
-    name: "OpenAI Glass",
-    bg: "bg-gray-50", // Plain background
-    card: "bg-gradient-to-br from-violet-50 via-purple-50 to-fuchsia-50 border border-violet-100 shadow-xl text-slate-800", // Violet/Purple Gradient
+    name: "Nebula Glass",
+    bg: "bg-gradient-to-br from-purple-50/50 to-fuchsia-50/50",
+    cssBg: "linear-gradient(to bottom right, #faf5ff, #fdf4ff)",
+    card: "bg-gradient-to-br from-violet-50 via-purple-50 to-fuchsia-50 border border-violet-100 shadow-xl shadow-purple-200/20 text-slate-800",
     text: "prose-slate prose-headings:text-violet-700 prose-a:text-purple-600",
     preview: "bg-gradient-to-br from-violet-200 to-fuchsia-200"
   },
   bamboo: {
     name: "Bamboo Forest",
-    bg: "bg-stone-100",
-    card: "bg-[#F0FDF4] border border-green-100 shadow-[0_8px_30px_rgb(0,0,0,0.06)] text-green-900",
+    bg: "bg-stone-50",
+    cssBg: "#fafaf9",
+    card: "bg-[#F0FDF4] border-2 border-green-300 shadow-2xl shadow-green-600/25 text-green-900",
     text: "prose-stone prose-headings:text-green-800",
     preview: "bg-[#F0FDF4]"
   },
   sunset: {
     name: "Sunset Vibes",
     bg: "bg-slate-50",
+    cssBg: "#f8fafc",
     card: "bg-gradient-to-br from-orange-50 to-indigo-50 border border-orange-100/50 shadow-lg text-indigo-950",
     text: "prose-slate prose-headings:text-indigo-900",
     preview: "bg-gradient-to-br from-orange-200 to-indigo-200"
   },
   midnight: {
     name: "Midnight Blue",
-    bg: "bg-[#0F172A]",
-    card: "bg-[#1E293B] border border-blue-500/20 shadow-2xl shadow-blue-900/20 text-blue-100",
+    bg: "bg-[#020617]",
+    cssBg: "#020617",
+    card: "bg-[#1E293B] border border-blue-500/30 shadow-2xl shadow-blue-900/40 text-blue-100 ring-1 ring-blue-400/10",
     text: "prose-invert prose-headings:text-blue-200 prose-p:text-slate-300",
     preview: "bg-[#1E293B]"
   },
   skyblue: {
     name: "Filo Blue",
-    bg: "bg-[#E9F6FF]", // Light 05
-    card: "bg-white border border-[#CCE7FB] shadow-[0_8px_30px_rgb(34,160,251,0.1)] text-slate-800", // Light 04 border, Light 02 shadow
-    text: "prose-slate prose-headings:text-[#22A0FB] prose-a:text-[#22A0FB]", // Light 02 text
-    preview: "bg-[#9CD5FF]" // Light 01
+    bg: "bg-[#F0F9FF]",
+    cssBg: "#F0F9FF",
+    card: "bg-white border border-[#CCE7FB] shadow-xl shadow-blue-100/50 text-slate-800",
+    text: "prose-slate prose-headings:text-[#22A0FB] prose-a:text-[#22A0FB]",
+    preview: "bg-[#9CD5FF]"
   },
   deepocean: {
     name: "Deep Ocean",
-    bg: "bg-slate-100", // Plain light background
-    card: "bg-gradient-to-br from-cyan-100 via-blue-100 to-indigo-100 border border-blue-200/50 shadow-2xl shadow-blue-500/5 text-slate-800", // Fresh Ocean Gradient
-    text: "prose-slate prose-headings:text-blue-700 prose-a:text-cyan-600",
-    preview: "bg-gradient-to-br from-cyan-400 to-blue-500"
+    bg: "bg-slate-100",
+    cssBg: "#f1f5f9",
+    card: "bg-gradient-to-br from-[#E0F2FE] via-[#BAE6FD] to-[#7DD3FC] border border-sky-200/60 shadow-xl shadow-sky-200/30 text-slate-700",
+    text: "prose-slate prose-headings:text-slate-800 prose-p:text-slate-600 prose-a:text-sky-600 prose-blockquote:text-slate-500",
+    preview: "bg-gradient-to-br from-[#E0F2FE] to-[#7DD3FC]"
   },
   sunsetbloom: {
     name: "Sunset Bloom",
-    bg: "bg-orange-50/50", // Plain warm background
-    card: "bg-gradient-to-br from-rose-100 via-orange-100 to-amber-100 border border-rose-200 shadow-[0_8px_30px_rgb(251,113,133,0.15)] text-rose-950", // Gradient Card
+    bg: "bg-orange-50",
+    cssBg: "#fff7ed",
+    card: "bg-gradient-to-br from-rose-100 via-orange-100 to-amber-100 border border-rose-200 shadow-xl shadow-rose-200/20 text-rose-950",
     text: "prose-slate prose-headings:text-rose-600 prose-a:text-orange-500",
     preview: "bg-gradient-to-br from-rose-300 to-orange-300"
   }
@@ -182,13 +219,14 @@ Keep it simple, keep it elegant.`;
 // --- Main Component ---
 export default function CardGenerator() {
   const cardRef = useRef<HTMLDivElement>(null);
-
+  
   // State
   const [content, setContent] = useState(DEFAULT_MARKDOWN);
   const [theme, setTheme] = useState<keyof typeof THEMES>('minimal');
   const [font, setFont] = useState<keyof typeof FONTS>('sans');
   const [fontSize, setFontSize] = useState<keyof typeof SIZES>('lg');
   const [decoration, setDecoration] = useState<keyof typeof DECORATIONS>('macos');
+  const [pattern, setPattern] = useState<keyof typeof PATTERNS>('dots');
   const [scale, setScale] = useState(100);
   const [isExporting, setIsExporting] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(400);
@@ -246,14 +284,63 @@ export default function CardGenerator() {
     return typeof window !== 'undefined' && window.innerWidth < 1024 ? 100 : 150;
   };
 
-  // Export
+  // Export with background (like macOS screenshot)
   const handleExport = useCallback(async () => {
     if (cardRef.current === null) return;
     setIsExporting(true);
+    
     try {
-      const dataUrl = await toPng(cardRef.current, { cacheBust: true, pixelRatio: 2 });
+      // Create a temporary container with background
+      const exportContainer = document.createElement('div');
+      exportContainer.style.cssText = `
+        width: 700px;
+        padding: 90px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: ${THEMES[theme].cssBg};
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 9999;
+      `;
+      
+      // Add pattern overlay (if not 'none')
+      if (pattern !== 'none') {
+        const patternOverlay = document.createElement('div');
+        patternOverlay.style.cssText = `
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+          background-image: ${PATTERNS[pattern].css};
+          background-size: ${PATTERNS[pattern].size};
+        `;
+        exportContainer.appendChild(patternOverlay);
+      }
+      
+      // Clone the actual card
+      const cardClone = cardRef.current.cloneNode(true) as HTMLElement;
+      cardClone.style.position = 'relative';
+      exportContainer.appendChild(cardClone);
+      
+      // Add to document temporarily
+      document.body.appendChild(exportContainer);
+      
+      // Wait a frame for styles to apply
+      await new Promise(resolve => requestAnimationFrame(resolve));
+      
+      // Export
+      const dataUrl = await toPng(exportContainer, { 
+        cacheBust: true, 
+        pixelRatio: 2,
+      });
+      
+      // Cleanup
+      document.body.removeChild(exportContainer);
+      
+      // Download
       const link = document.createElement('a');
-      link.download = `card-${theme}-${Date.now()}.png`;
+      link.download = `flipmark-${theme}-${Date.now()}.png`;
       link.href = dataUrl;
       link.click();
     } catch (err) {
@@ -261,7 +348,7 @@ export default function CardGenerator() {
     } finally {
       setIsExporting(false);
     }
-  }, [cardRef, theme]);
+  }, [cardRef, theme, pattern]);
 
   return (
     <div
@@ -606,6 +693,27 @@ export default function CardGenerator() {
                     ))}
                   </div>
                 </div>
+
+                {/* Canvas Pattern Selector */}
+                <div className="space-y-1.5">
+                  <span className="text-[10px] text-slate-400 font-medium">Canvas Pattern</span>
+                  <div className="grid grid-cols-5 gap-2">
+                    {(Object.keys(PATTERNS) as Array<keyof typeof PATTERNS>).map((p) => (
+                      <button 
+                        key={p}
+                        onClick={() => setPattern(p)}
+                        className={cn(
+                          "py-1.5 text-[10px] font-medium rounded-md transition-all border",
+                          pattern === p 
+                            ? "bg-indigo-50 border-indigo-200 text-indigo-700" 
+                            : "bg-white border-gray-200 text-slate-600 hover:border-gray-300"
+                        )}
+                      >
+                        {PATTERNS[p].name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
             </div>
 
           </div>
@@ -629,13 +737,15 @@ export default function CardGenerator() {
         THEMES[theme].bg
       )}>
 
-        {/* Dot Pattern Background */}
-        <div className="absolute inset-0 pointer-events-none"
-          style={{
-            backgroundImage: 'radial-gradient(circle, #cbd5e1 1px, transparent 1px)',
-            backgroundSize: '20px 20px'
-          }}>
-        </div>
+        {/* Pattern Background */}
+        {pattern !== 'none' && (
+          <div className="absolute inset-0 pointer-events-none"
+            style={{
+              backgroundImage: PATTERNS[pattern].css,
+              backgroundSize: PATTERNS[pattern].size
+            }}>
+          </div>
+        )}
 
         {/* Mobile Info Icon (Fixed Top Right) */}
         <button
@@ -865,6 +975,7 @@ export default function CardGenerator() {
         </div>
 
       </div>
+
     </div>
   );
 }
