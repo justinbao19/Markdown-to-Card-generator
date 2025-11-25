@@ -44,14 +44,191 @@ import {
   AlignLeft,
   RotateCw,
   Reply,
-  CornerUpLeft
+  CornerUpLeft,
+  PenLine,
+  PilcrowSquare
 } from "lucide-react";
+import dynamic from "next/dynamic";
+import { common, createLowlight } from "lowlight";
+
+// Create lowlight instance for syntax highlighting in card preview
+const lowlight = createLowlight(common);
+
+// Dynamically import Novel Editor to avoid SSR issues
+const NovelEditor = dynamic(() => import("./NovelEditor"), { 
+  ssr: false,
+  loading: () => <div className="flex items-center justify-center h-full text-slate-400 text-sm">Loading editor...</div>
+});
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
 // --- Utility ---
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
+}
+
+// Apply syntax highlighting to code blocks in HTML content
+function highlightCodeBlocks(html: string): string {
+  if (!html) return html;
+  
+  // Match <pre><code class="language-xxx">...</code></pre> patterns
+  const codeBlockRegex = /<pre><code(?:\s+class="language-(\w+)")?>([\s\S]*?)<\/code><\/pre>/gi;
+  
+  return html.replace(codeBlockRegex, (match, language, code) => {
+    const lang = language || 'plaintext';
+    
+    // Decode HTML entities
+    const decodedCode = code
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&amp;/g, '&')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'");
+    
+    try {
+      // Apply syntax highlighting
+      const highlighted = lowlight.highlight(lang, decodedCode);
+      
+      // Convert lowlight result to HTML string
+      const toHtml = (nodes: any[]): string => {
+        return nodes.map((node: any) => {
+          if (node.type === 'text') {
+            return node.value
+              .replace(/&/g, '&amp;')
+              .replace(/</g, '&lt;')
+              .replace(/>/g, '&gt;');
+          }
+          if (node.type === 'element') {
+            const className = node.properties?.className?.join(' ') || '';
+            const children = toHtml(node.children || []);
+            return `<span class="${className}">${children}</span>`;
+          }
+          return '';
+        }).join('');
+      };
+      
+      const result = toHtml(highlighted.children || []);
+      return `<pre><code class="language-${lang} hljs">${result}</code></pre>`;
+    } catch (e) {
+      // If highlighting fails, return original with escaped code
+      return `<pre><code class="language-${lang}">${code}</code></pre>`;
+    }
+  });
+}
+
+// Convert markdown to HTML for Visual mode
+function markdownToHtml(markdown: string): string {
+  if (!markdown) return "<p></p>";
+  if (markdown.trim().startsWith("<")) return markdown;
+  
+  let html = markdown
+    .replace(/^### (.*$)/gm, '<h3>$1</h3>')
+    .replace(/^## (.*$)/gm, '<h2>$1</h2>')
+    .replace(/^# (.*$)/gm, '<h1>$1</h1>')
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+    .replace(/^> (.*$)/gm, '<blockquote><p>$1</p></blockquote>')
+    .replace(/^\* (.*$)/gm, '<li>$1</li>')
+    .replace(/^- (.*$)/gm, '<li>$1</li>')
+    .replace(/`([^`]+)`/g, '<code>$1</code>');
+  
+  html = html.replace(/(<li>.*?<\/li>\n?)+/g, (match) => `<ul>${match}</ul>`);
+  
+  const lines = html.split('\n');
+  const result: string[] = [];
+  
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+    if (trimmed.startsWith('<h') || trimmed.startsWith('<blockquote') || 
+        trimmed.startsWith('<ul') || trimmed.startsWith('<li') || trimmed.startsWith('<p')) {
+      result.push(trimmed);
+    } else {
+      result.push(`<p>${trimmed}</p>`);
+    }
+  }
+  
+  return result.join('') || "<p></p>";
+}
+
+// Convert HTML back to Markdown for Markdown mode
+function htmlToMarkdown(html: string): string {
+  if (!html) return "";
+  // If it doesn't look like HTML, return as-is
+  if (!html.trim().startsWith("<")) return html;
+  
+  // First, clean up empty list items that Tiptap adds
+  let cleanHtml = html
+    // Remove empty li with empty p inside
+    .replace(/<li[^>]*>\s*<p[^>]*>\s*<\/p>\s*<\/li>/gi, '')
+    // Remove empty li tags
+    .replace(/<li[^>]*>\s*<\/li>/gi, '')
+    // Remove li with only whitespace
+    .replace(/<li[^>]*>[\s\n\r]*<\/li>/gi, '');
+  
+  let markdown = cleanHtml
+    // Headers
+    .replace(/<h1[^>]*>(.*?)<\/h1>/gi, '# $1\n\n')
+    .replace(/<h2[^>]*>(.*?)<\/h2>/gi, '## $1\n\n')
+    .replace(/<h3[^>]*>(.*?)<\/h3>/gi, '### $1\n\n')
+    // Bold and italic
+    .replace(/<strong[^>]*>(.*?)<\/strong>/gi, '**$1**')
+    .replace(/<b[^>]*>(.*?)<\/b>/gi, '**$1**')
+    .replace(/<em[^>]*>(.*?)<\/em>/gi, '*$1*')
+    .replace(/<i[^>]*>(.*?)<\/i>/gi, '*$1*')
+    // Blockquotes
+    .replace(/<blockquote[^>]*><p[^>]*>(.*?)<\/p><\/blockquote>/gi, '> $1\n\n')
+    .replace(/<blockquote[^>]*>(.*?)<\/blockquote>/gi, '> $1\n\n')
+    // Unordered Lists
+    .replace(/<ul[^>]*>([\s\S]*?)<\/ul>/gi, (_, content) => {
+      const listItems: string[] = [];
+      // Match each li and extract content
+      const liRegex = /<li[^>]*>([\s\S]*?)<\/li>/gi;
+      let match;
+      while ((match = liRegex.exec(content)) !== null) {
+        let itemContent = match[1]
+          .replace(/<p[^>]*>(.*?)<\/p>/gi, '$1')
+          .replace(/<[^>]+>/g, '')
+          .trim();
+        if (itemContent) {
+          listItems.push(`* ${itemContent}`);
+        }
+      }
+      return listItems.length > 0 ? listItems.join('\n') + '\n\n' : '';
+    })
+    // Ordered Lists
+    .replace(/<ol[^>]*>([\s\S]*?)<\/ol>/gi, (_, content) => {
+      const listItems: string[] = [];
+      const liRegex = /<li[^>]*>([\s\S]*?)<\/li>/gi;
+      let match;
+      let index = 0;
+      while ((match = liRegex.exec(content)) !== null) {
+        let itemContent = match[1]
+          .replace(/<p[^>]*>(.*?)<\/p>/gi, '$1')
+          .replace(/<[^>]+>/g, '')
+          .trim();
+        if (itemContent) {
+          listItems.push(`${++index}. ${itemContent}`);
+        }
+      }
+      return listItems.length > 0 ? listItems.join('\n') + '\n\n' : '';
+    })
+    // Code
+    .replace(/<code[^>]*>(.*?)<\/code>/gi, '`$1`')
+    // Paragraphs
+    .replace(/<p[^>]*>(.*?)<\/p>/gi, '$1\n\n')
+    // Line breaks
+    .replace(/<br\s*\/?>/gi, '\n')
+    // Remove remaining tags
+    .replace(/<[^>]+>/g, '')
+    // Clean up empty bullet points that might have slipped through
+    .replace(/^\*\s*$/gm, '')
+    .replace(/^\d+\.\s*$/gm, '')
+    // Clean up extra whitespace
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+  
+  return markdown;
 }
 
 // --- Constants ---
@@ -191,9 +368,12 @@ const THEMES = {
 };
 
 const FONTS = {
-  sans: { name: "Sans", class: "font-sans" },
-  serif: { name: "Serif", class: "font-serif" },
-  mono: { name: "Mono", class: "font-mono" }
+  sans: { name: "Sans", class: "font-sans", style: {} },
+  serif: { name: "Serif", class: "font-serif", style: {} },
+  mono: { name: "Mono", class: "font-mono", style: {} },
+  georgia: { name: "Georgia", class: "", style: { fontFamily: "Georgia, serif" } },
+  palatino: { name: "Palatino", class: "", style: { fontFamily: "'Palatino Linotype', 'Book Antiqua', Palatino, serif" } },
+  garamond: { name: "Garamond", class: "", style: { fontFamily: "Garamond, 'Times New Roman', serif" } }
 };
 
 const SIZES = {
@@ -222,6 +402,7 @@ export default function CardGenerator() {
   
   // State
   const [content, setContent] = useState(DEFAULT_MARKDOWN);
+  const [editorMode, setEditorMode] = useState<'markdown' | 'wysiwyg'>('markdown');
   const [theme, setTheme] = useState<keyof typeof THEMES>('minimal');
   const [font, setFont] = useState<keyof typeof FONTS>('sans');
   const [fontSize, setFontSize] = useState<keyof typeof SIZES>('lg');
@@ -235,30 +416,57 @@ export default function CardGenerator() {
   const [footerIcon, setFooterIcon] = useState<keyof typeof SYMBOLS>('sparkles');
   const [isMobileEditing, setIsMobileEditing] = useState(false);
   const [showMobileInfo, setShowMobileInfo] = useState(false);
+  const [editorHeight, setEditorHeight] = useState(55); // percentage
+  const [isResizingEditor, setIsResizingEditor] = useState(false);
 
   // Mobile Tab State
   const [mobileActiveTab, setMobileActiveTab] = useState<'theme' | 'font' | 'style'>('theme');
 
-  // Drag Handlers
+  // Sidebar Drag Handlers
   const startResizing = useCallback(() => {
     setIsDragging(true);
   }, []);
 
   const stopResizing = useCallback(() => {
     setIsDragging(false);
+    setIsResizingEditor(false);
   }, []);
 
   const resize = useCallback((mouseMoveEvent: MouseEvent) => {
     if (isDragging) {
       const newWidth = mouseMoveEvent.clientX;
-      const minWidth = 360; // Min width to fit 3 theme cards (100px * 3 + gap + padding)
-      const maxWidth = Math.min(800, window.innerWidth * 0.5); // Relax max width to 50% or 800px
-
+      const minWidth = 360;
+      const maxWidth = Math.min(window.innerWidth * 0.5, 800);
       if (newWidth >= minWidth && newWidth <= maxWidth) {
         setSidebarWidth(newWidth);
       }
     }
-  }, [isDragging]);
+    if (isResizingEditor) {
+      const sidebar = document.getElementById('sidebar-panel');
+      if (sidebar) {
+        const sidebarRect = sidebar.getBoundingClientRect();
+        const headerHeight = 56; // h-14 = 56px
+        const availableHeight = sidebarRect.height - headerHeight;
+        const mouseY = mouseMoveEvent.clientY - sidebarRect.top - headerHeight;
+        const percentage = (mouseY / availableHeight) * 100;
+        
+        // Calculate min/max based on pixel requirements
+        const minEditorPx = 380; // Enough to show Editor header + full default markdown text (~12 lines)
+        const minControlsPx = 480; // Enough to show Theme (9 blocks) + Typography (Font + Size)
+        
+        const minEditorPercent = (minEditorPx / availableHeight) * 100;
+        const maxEditorPercent = 100 - (minControlsPx / availableHeight) * 100;
+        
+        const clampedPercentage = Math.min(Math.max(percentage, minEditorPercent), maxEditorPercent);
+        setEditorHeight(clampedPercentage);
+      }
+    }
+  }, [isDragging, isResizingEditor]);
+
+  // Editor Resizer Handlers
+  const startResizingEditor = useCallback(() => {
+    setIsResizingEditor(true);
+  }, []);
 
   useEffect(() => {
     window.addEventListener("mousemove", resize);
@@ -354,7 +562,8 @@ export default function CardGenerator() {
     <div
       className={cn(
         "flex flex-col lg:flex-row h-screen w-full overflow-hidden bg-white text-slate-900 font-sans",
-        isDragging && "cursor-col-resize select-none"
+        isDragging && "cursor-col-resize select-none",
+        isResizingEditor && "cursor-row-resize select-none"
       )}
     >
 
@@ -418,8 +627,46 @@ export default function CardGenerator() {
       {/* --- MOBILE FULLSCREEN EDITOR OVERLAY --- */}
       {isMobileEditing && (
         <div className="fixed inset-0 z-50 bg-white flex flex-col animate-in slide-in-from-bottom-10 duration-200 lg:hidden">
+          {/* Header with mode toggle */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-white">
-            <span className="font-bold text-slate-800">Edit Content</span>
+            {/* Mode Toggle */}
+            <div className="flex bg-gray-100 p-0.5 rounded-lg">
+              <button
+                onClick={() => {
+                  if (editorMode === 'wysiwyg' && content.trim().startsWith('<')) {
+                    setContent(htmlToMarkdown(content));
+                  }
+                  setEditorMode('markdown');
+                }}
+                className={cn(
+                  "px-3 py-1.5 text-xs font-medium rounded-md transition-all flex items-center gap-1.5",
+                  editorMode === 'markdown' 
+                    ? "bg-white text-indigo-600 shadow-sm" 
+                    : "text-slate-500"
+                )}
+              >
+                <Code size={12} />
+                Markdown
+              </button>
+              <button
+                onClick={() => {
+                  if (editorMode === 'markdown' && !content.trim().startsWith('<')) {
+                    setContent(markdownToHtml(content));
+                  }
+                  setEditorMode('wysiwyg');
+                }}
+                className={cn(
+                  "px-3 py-1.5 text-xs font-medium rounded-md transition-all flex items-center gap-1.5",
+                  editorMode === 'wysiwyg' 
+                    ? "bg-white text-indigo-600 shadow-sm" 
+                    : "text-slate-500"
+                )}
+              >
+                <PilcrowSquare size={12} />
+                Visual
+              </button>
+            </div>
+            
             <button
               onClick={() => setIsMobileEditing(false)}
               className="text-indigo-600 font-semibold text-sm flex items-center gap-1 px-3 py-1.5 bg-indigo-50 rounded-full"
@@ -428,24 +675,40 @@ export default function CardGenerator() {
               Done
             </button>
           </div>
-          <textarea
-            className="flex-1 w-full p-5 resize-none outline-none font-mono text-base text-slate-700 leading-relaxed"
-            placeholder="Type markdown..."
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            autoFocus
-          />
-          <div className="px-4 py-3 bg-slate-50 border-t border-gray-100 text-xs text-slate-400 flex gap-4 font-mono overflow-x-auto">
-            <span>**Bold**</span>
-            <span>*Italic*</span>
-            <span># Header</span>
-            <span>&gt; Quote</span>
-          </div>
+          
+          {/* Editor Content */}
+          {editorMode === 'markdown' ? (
+            <>
+              <textarea
+                className="flex-1 w-full p-5 resize-none outline-none font-mono text-base text-slate-700 leading-relaxed"
+                placeholder="Type markdown..."
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                autoFocus
+              />
+              <div className="px-4 py-3 bg-slate-50 border-t border-gray-100 text-xs text-slate-400 flex gap-4 font-mono overflow-x-auto">
+                <span>**Bold**</span>
+                <span>*Italic*</span>
+                <span># Header</span>
+                <span>&gt; Quote</span>
+                <span>`Code`</span>
+              </div>
+            </>
+          ) : (
+            <div className="flex-1 overflow-y-auto">
+              <NovelEditor
+                initialContent={content}
+                onContentChange={(html) => setContent(html)}
+                className="h-full"
+              />
+            </div>
+          )}
         </div>
       )}
 
       {/* --- LEFT PANEL: EDITOR & CONTROLS (Desktop Sidebar / Mobile Bottom Sheet) --- */}
       <div
+        id="sidebar-panel"
         style={{ '--sidebar-width': `${sidebarWidth}px` } as React.CSSProperties}
         className={cn(
           "flex-shrink-0 flex flex-col border-r border-gray-200 bg-white z-20 shadow-lg relative group/sidebar transition-all",
@@ -512,29 +775,98 @@ export default function CardGenerator() {
           </div>
         </div>
 
-        {/* Markdown Editor (Desktop Only - Mobile uses Overlay) */}
-        <div className="hidden lg:flex flex-1 flex-col min-h-0">
-          <div className="px-4 py-2 text-xs font-semibold text-slate-400 tracking-wider uppercase mt-2">Content</div>
-          <textarea
-            className="flex-1 w-full p-4 resize-none outline-none font-mono text-sm text-slate-600 leading-relaxed bg-transparent selection:bg-indigo-100"
-            placeholder="Type markdown..."
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            spellCheck={false}
-          />
-          <div className="px-4 py-2 bg-slate-50 border-t border-b border-gray-100 text-[10px] text-slate-400 flex gap-3 font-mono">
-            <span>**Bold**</span>
-            <span>*Italic*</span>
-            <span># Header</span>
-            <span>&gt; Quote</span>
+        {/* Editor (Desktop Only - Mobile uses Overlay) */}
+        <div 
+          className="hidden lg:flex flex-col min-h-0 overflow-hidden"
+          style={{ height: `${editorHeight}%` }}
+        >
+          {/* Editor Header with Mode Toggle */}
+          <div className="flex items-center justify-between px-4 py-2 border-b border-gray-100 shrink-0">
+            <div className="flex items-center gap-2">
+              <PenLine size={12} className="text-slate-400" />
+              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Editor</span>
+            </div>
+            {/* Mode Toggle */}
+            <div className="flex bg-gray-200/50 p-0.5 rounded-md">
+              <button
+                onClick={() => {
+                  // Convert HTML back to Markdown when switching to Markdown mode
+                  if (editorMode === 'wysiwyg' && content.trim().startsWith('<')) {
+                    setContent(htmlToMarkdown(content));
+                  }
+                  setEditorMode('markdown');
+                }}
+                className={cn(
+                  "px-2 py-1 text-[10px] font-medium rounded transition-all flex items-center gap-1",
+                  editorMode === 'markdown' 
+                    ? "bg-white text-indigo-600 shadow-sm" 
+                    : "text-slate-500 hover:text-slate-700"
+                )}
+                title="Markdown mode"
+              >
+                <Code size={10} />
+                Markdown
+              </button>
+              <button
+                onClick={() => {
+                  // Convert markdown to HTML when switching to Visual mode
+                  if (editorMode === 'markdown' && !content.trim().startsWith('<')) {
+                    setContent(markdownToHtml(content));
+                  }
+                  setEditorMode('wysiwyg');
+                }}
+                className={cn(
+                  "px-2 py-1 text-[10px] font-medium rounded transition-all flex items-center gap-1",
+                  editorMode === 'wysiwyg' 
+                    ? "bg-white text-indigo-600 shadow-sm" 
+                    : "text-slate-500 hover:text-slate-700"
+                )}
+                title="Visual editor (Notion-style)"
+              >
+                <PilcrowSquare size={10} />
+                Visual
+              </button>
+            </div>
           </div>
+          
+          {/* Markdown Editor */}
+          {editorMode === 'markdown' && (
+            <textarea
+              className="flex-1 w-full p-4 resize-none outline-none font-mono text-sm text-slate-600 leading-relaxed bg-transparent selection:bg-indigo-100"
+              placeholder="Type markdown..."
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              spellCheck={false}
+            />
+          )}
+          
+          {/* WYSIWYG Editor (Novel) */}
+          {editorMode === 'wysiwyg' && (
+            <div className="flex-1 overflow-y-auto">
+              <NovelEditor
+                initialContent={content}
+                onContentChange={(html) => setContent(html)}
+                className="h-full"
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Draggable Resizer (Desktop Only) */}
+        <div
+          className="hidden lg:flex h-2 bg-slate-100 hover:bg-indigo-100 cursor-row-resize items-center justify-center border-y border-gray-200 transition-colors group/editor-resizer shrink-0"
+          onMouseDown={startResizingEditor}
+        >
+          <div className="w-12 h-1 bg-slate-300 rounded-full group-hover/editor-resizer:bg-indigo-400 transition-colors" />
         </div>
 
         {/* Style Controls (Always Visible - Bottom Half on Desktop, Full Panel on Mobile) */}
-        <div className={cn(
-          "bg-slate-50 border-t border-gray-200 flex flex-col overflow-y-auto",
-          "lg:h-[45%] h-full" // Mobile takes full height of this panel container
-        )}>
+        <div 
+          className={cn(
+            "bg-slate-50 flex flex-col overflow-y-auto",
+            "h-full lg:flex-1" // Mobile takes full height, Desktop takes remaining space
+          )}
+        >
 
           {/* --- MOBILE TABS HEADER --- */}
           <div className="lg:hidden flex items-center border-b border-gray-200 bg-white shrink-0">
@@ -585,19 +917,19 @@ export default function CardGenerator() {
                 <Type size={12} /> Typography
               </div>
 
-              {/* Mobile: Stack vertically | Desktop: Grid 2 cols */}
-              <div className="flex flex-col lg:grid lg:grid-cols-2 gap-4">
+              {/* Mobile: Stack vertically | Desktop: Stack vertically */}
+              <div className="flex flex-col gap-4">
 
-                {/* Font Family */}
+                {/* Font Family - Grid layout for 6 fonts */}
                 <div className="space-y-1.5 w-full">
                   <label className="text-[10px] text-slate-400 font-medium">Font Family</label>
-                  <div className="flex bg-gray-200/50 p-1 rounded-lg w-full">
+                  <div className="grid grid-cols-3 gap-1 bg-gray-200/50 p-1 rounded-lg w-full">
                     {(Object.keys(FONTS) as Array<keyof typeof FONTS>).map((f) => (
                       <button
                         key={f}
                         onClick={() => setFont(f)}
                         className={cn(
-                          "flex-1 py-2 lg:py-1.5 text-xs font-medium rounded-md transition-all",
+                          "py-2 lg:py-1.5 text-xs font-medium rounded-md transition-all",
                           font === f ? "bg-white text-indigo-600 shadow-sm" : "text-slate-500 hover:text-slate-700"
                         )}
                       >
@@ -779,6 +1111,7 @@ export default function CardGenerator() {
                   THEMES[theme].card,
                   FONTS[font].class
                 )}
+                style={FONTS[font].style}
               >
                 {/* Window Controls Header */}
                 {decoration !== 'none' && (
@@ -899,7 +1232,11 @@ export default function CardGenerator() {
                   THEMES[theme].text,
                   SIZES[fontSize].class
                 )}>
-                  <ReactMarkdown>{content || "Type something..."}</ReactMarkdown>
+                  {editorMode === 'markdown' ? (
+                    <ReactMarkdown>{content || "Type something..."}</ReactMarkdown>
+                  ) : (
+                    <div dangerouslySetInnerHTML={{ __html: highlightCodeBlocks(content) || "<p>Type something...</p>" }} />
+                  )}
                 </div>
 
                 {/* Footer */}

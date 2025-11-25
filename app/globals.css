@@ -2,3 +2,150 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Code Block Styles for Card Preview */
+.prose pre {
+  background: #1e1e1e !important;
+  color: #d4d4d4 !important;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace !important;
+  padding: 0.75rem 1rem !important;
+  border-radius: 0.5rem !important;
+  font-size: 0.75rem !important;
+  line-height: 1.5 !important;
+  overflow-x: auto !important;
+  margin: 0.75rem 0 !important;
+}
+
+.prose pre code {
+  background: none !important;
+  color: inherit !important;
+  font-size: inherit !important;
+  padding: 0 !important;
+}
+
+/* Inline code in card preview */
+.prose code:not(pre code) {
+  background: rgba(0, 0, 0, 0.06) !important;
+  color: #e11d48 !important;
+  padding: 0.15rem 0.4rem !important;
+  border-radius: 0.25rem !important;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace !important;
+  font-size: 0.85em !important;
+}
+
+/* Dark theme inline code */
+.prose-invert code:not(pre code) {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #fb7185 !important;
+}
+
+/* Syntax highlighting colors (VS Code Dark+ theme) */
+.prose .hljs-keyword { color: #569cd6 !important; }
+.prose .hljs-string { color: #ce9178 !important; }
+.prose .hljs-number { color: #b5cea8 !important; }
+.prose .hljs-function { color: #dcdcaa !important; }
+.prose .hljs-comment { color: #6a9955 !important; font-style: italic; }
+.prose .hljs-variable { color: #9cdcfe !important; }
+.prose .hljs-class { color: #4ec9b0 !important; }
+.prose .hljs-attr { color: #9cdcfe !important; }
+.prose .hljs-tag { color: #569cd6 !important; }
+.prose .hljs-attribute { color: #9cdcfe !important; }
+.prose .hljs-built_in { color: #4ec9b0 !important; }
+.prose .hljs-type { color: #4ec9b0 !important; }
+.prose .hljs-params { color: #9cdcfe !important; }
+.prose .hljs-meta { color: #569cd6 !important; }
+.prose .hljs-title { color: #dcdcaa !important; }
+.prose .hljs-section { color: #dcdcaa !important; }
+.prose .hljs-name { color: #569cd6 !important; }
+.prose .hljs-selector-tag { color: #d7ba7d !important; }
+.prose .hljs-selector-class { color: #d7ba7d !important; }
+.prose .hljs-selector-id { color: #d7ba7d !important; }
+.prose .hljs-property { color: #9cdcfe !important; }
+.prose .hljs-literal { color: #569cd6 !important; }
+.prose .hljs-symbol { color: #b5cea8 !important; }
+.prose .hljs-punctuation { color: #d4d4d4 !important; }
+.prose .hljs-operator { color: #d4d4d4 !important; }
+
+/* Novel Editor Styles */
+.novel-editor-wrapper {
+  @apply h-full;
+}
+
+.novel-editor-wrapper .ProseMirror {
+  @apply p-4 outline-none min-h-[200px] text-sm text-slate-600 leading-relaxed;
+}
+
+.novel-editor-wrapper .ProseMirror p.is-editor-empty:first-child::before {
+  @apply text-slate-400 float-left h-0 pointer-events-none;
+  content: attr(data-placeholder);
+}
+
+.novel-editor-wrapper .ProseMirror h1 {
+  @apply text-2xl font-bold mb-4;
+}
+
+.novel-editor-wrapper .ProseMirror h2 {
+  @apply text-xl font-bold mb-3;
+}
+
+.novel-editor-wrapper .ProseMirror h3 {
+  @apply text-lg font-bold mb-2;
+}
+
+.novel-editor-wrapper .ProseMirror p {
+  @apply mb-3;
+}
+
+.novel-editor-wrapper .ProseMirror ul,
+.novel-editor-wrapper .ProseMirror ol {
+  @apply pl-6 mb-3;
+}
+
+.novel-editor-wrapper .ProseMirror ul {
+  @apply list-disc;
+}
+
+.novel-editor-wrapper .ProseMirror ol {
+  @apply list-decimal;
+}
+
+.novel-editor-wrapper .ProseMirror blockquote {
+  @apply border-l-4 border-slate-300 pl-4 italic text-slate-500 my-4;
+}
+
+.novel-editor-wrapper .ProseMirror code {
+  @apply bg-slate-100 px-1.5 py-0.5 rounded text-sm font-mono text-pink-600;
+}
+
+.novel-editor-wrapper .ProseMirror pre {
+  @apply bg-slate-900 text-slate-100 p-4 rounded-lg my-4 overflow-x-auto;
+}
+
+.novel-editor-wrapper .ProseMirror pre code {
+  @apply bg-transparent text-inherit p-0;
+}
+
+.novel-editor-wrapper .ProseMirror strong {
+  @apply font-bold;
+}
+
+.novel-editor-wrapper .ProseMirror em {
+  @apply italic;
+}
+
+.novel-editor-wrapper .ProseMirror a {
+  @apply text-indigo-600 underline;
+}
+
+/* Novel command menu styles */
+.novel-editor-wrapper [data-novel-command-menu] {
+  @apply bg-white rounded-lg shadow-xl border border-slate-200 p-1 min-w-[200px];
+}
+
+.novel-editor-wrapper [data-novel-command-item] {
+  @apply px-3 py-2 rounded-md cursor-pointer text-sm text-slate-700;
+}
+
+.novel-editor-wrapper [data-novel-command-item][data-selected="true"] {
+  @apply bg-indigo-50 text-indigo-700;
+}
+
