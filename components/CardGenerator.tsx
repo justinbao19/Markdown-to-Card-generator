@@ -410,6 +410,27 @@ export default function CardGenerator() {
   const [pattern, setPattern] = useState<keyof typeof PATTERNS>('dots');
   const [scale, setScale] = useState(100);
   const [isExporting, setIsExporting] = useState(false);
+  const [showExportMenu, setShowExportMenu] = useState(false);
+  const exportMenuRef = useRef<HTMLDivElement>(null);
+
+  // Export resolution options
+  const EXPORT_RESOLUTIONS = [
+    { name: '1x', scale: 1, label: 'Standard', size: '~520×auto' },
+    { name: '2x', scale: 2, label: 'Retina', size: '~1040×auto' },
+    { name: '3x', scale: 3, label: 'High DPI', size: '~1560×auto' },
+    { name: '4x', scale: 4, label: 'Ultra HD', size: '~2080×auto' },
+  ];
+
+  // Close export menu when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (exportMenuRef.current && !exportMenuRef.current.contains(event.target as Node)) {
+        setShowExportMenu(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
   const [sidebarWidth, setSidebarWidth] = useState(400);
   const [isDragging, setIsDragging] = useState(false);
   const [footerText, setFooterText] = useState("FlipMark");
@@ -493,9 +514,10 @@ export default function CardGenerator() {
   };
 
   // Export with background (like macOS screenshot)
-  const handleExport = useCallback(async () => {
+  const handleExport = useCallback(async (pixelRatio: number = 2) => {
     if (cardRef.current === null) return;
     setIsExporting(true);
+    setShowExportMenu(false);
     
     try {
       // Create a temporary container with background
@@ -540,7 +562,7 @@ export default function CardGenerator() {
       // Export
       const dataUrl = await toPng(exportContainer, { 
         cacheBust: true, 
-        pixelRatio: 2,
+        pixelRatio: pixelRatio,
       });
       
       // Cleanup
@@ -967,17 +989,20 @@ export default function CardGenerator() {
               </div>
 
                 {/* Footer Text Input */}
-                <div className="flex items-center gap-2 p-2 bg-white rounded-xl border border-gray-200">
-                   <div className="p-1.5 bg-gray-100 text-slate-500 rounded-md">
-                      <CreditCard size={14} />
-                   </div>
-                   <input 
-                      type="text"
-                      value={footerText}
-                      onChange={(e) => setFooterText(e.target.value)}
-                      className="flex-1 text-xs font-medium text-slate-700 outline-none placeholder:text-slate-400"
-                      placeholder="Footer text..."
-                   />
+                <div className="space-y-1.5">
+                  <span className="text-[10px] text-slate-400 font-medium">Footer Text</span>
+                  <div className="flex items-center gap-2 p-2 bg-white rounded-xl border border-gray-200">
+                     <div className="p-1.5 bg-gray-100 text-slate-500 rounded-md">
+                        <CreditCard size={14} />
+                     </div>
+                     <input 
+                        type="text"
+                        value={footerText}
+                        onChange={(e) => setFooterText(e.target.value)}
+                        className="flex-1 text-xs font-medium text-slate-700 outline-none placeholder:text-slate-400"
+                        placeholder="Footer text..."
+                     />
+                  </div>
                 </div>
 
                 {/* Symbol Selector */}
@@ -1294,21 +1319,52 @@ export default function CardGenerator() {
 
           <div className="w-px h-6 bg-gray-200 mx-1" />
 
-          {/* Export Action */}
-          <button
-            onClick={(e) => { e.stopPropagation(); handleExport(); }}
-            disabled={isExporting}
-            className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-6 py-2 rounded-full font-medium text-sm transition-all shadow-lg hover:shadow-xl active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
-          >
-            {isExporting ? (
-              <span className="animate-pulse">Generating...</span>
-            ) : (
-              <>
-                <span>Export</span>
-                <Download size={16} />
-              </>
+          {/* Export Action with Resolution Menu */}
+          <div className="relative" ref={exportMenuRef}>
+            <button
+              onClick={(e) => { e.stopPropagation(); setShowExportMenu(!showExportMenu); }}
+              disabled={isExporting}
+              className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-6 py-2 rounded-full font-medium text-sm transition-all shadow-lg hover:shadow-xl active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
+            >
+              {isExporting ? (
+                <span className="animate-pulse">Generating...</span>
+              ) : (
+                <>
+                  <span>Export</span>
+                  <Download size={16} />
+                </>
+              )}
+            </button>
+            
+            {/* Resolution Dropdown Menu */}
+            {showExportMenu && !isExporting && (
+              <div className="absolute bottom-full mb-2 right-0 bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden min-w-[200px] animate-in fade-in slide-in-from-bottom-2 duration-150">
+                <div className="px-3 py-2 bg-slate-50 border-b border-gray-100">
+                  <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Export Resolution</span>
+                </div>
+                <div className="py-1">
+                  {EXPORT_RESOLUTIONS.map((res) => (
+                    <button
+                      key={res.name}
+                      onClick={() => handleExport(res.scale)}
+                      className="w-full px-3 py-2.5 flex items-center justify-between hover:bg-indigo-50 transition-colors group"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="w-8 h-8 flex items-center justify-center bg-slate-100 group-hover:bg-indigo-100 rounded-lg text-xs font-bold text-slate-600 group-hover:text-indigo-600 transition-colors">
+                          {res.name}
+                        </span>
+                        <div className="text-left">
+                          <div className="text-sm font-medium text-slate-700 group-hover:text-indigo-700">{res.label}</div>
+                          <div className="text-[10px] text-slate-400">{res.size}</div>
+                        </div>
+                      </div>
+                      <Download size={14} className="text-slate-300 group-hover:text-indigo-400" />
+                    </button>
+                  ))}
+                </div>
+              </div>
             )}
-          </button>
+          </div>
         </div>
 
       </div>
