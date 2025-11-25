@@ -412,6 +412,12 @@ export default function CardGenerator() {
   const [isExporting, setIsExporting] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
   const exportMenuRef = useRef<HTMLDivElement>(null);
+  const pinchState = useRef({
+    active: false,
+    initialDistance: 0,
+    startScale: 100,
+  });
+  const [todayDate, setTodayDate] = useState("");
 
   // Export resolution options
   const EXPORT_RESOLUTIONS = [
@@ -508,9 +514,50 @@ export default function CardGenerator() {
     }
   }, []);
 
+  useEffect(() => {
+    setTodayDate(new Date().toLocaleDateString());
+  }, []);
+
   // Helper: Get max scale based on screen size (Mobile: 100%, Desktop: 150%)
   const getMaxScale = () => {
     return typeof window !== 'undefined' && window.innerWidth < 1024 ? 100 : 150;
+  };
+
+  const getTouchDistance = (touches: TouchList | React.TouchList) => {
+    const touch1 = touches[0];
+    const touch2 = touches[1];
+    if (!touch1 || !touch2) return 0;
+    const dx = touch1.clientX - touch2.clientX;
+    const dy = touch1.clientY - touch2.clientY;
+    return Math.sqrt(dx * dx + dy * dy);
+  };
+
+  const handlePinchStart = (event: React.TouchEvent<HTMLDivElement>) => {
+    if (typeof window !== 'undefined' && window.innerWidth >= 1024) return;
+    if (event.touches.length === 2) {
+      const distance = getTouchDistance(event.touches);
+      if (!distance) return;
+      pinchState.current.active = true;
+      pinchState.current.initialDistance = distance;
+      pinchState.current.startScale = scale;
+    }
+  };
+
+  const handlePinchMove = (event: React.TouchEvent<HTMLDivElement>) => {
+    if (!pinchState.current.active || event.touches.length < 2) return;
+    event.preventDefault();
+    const distance = getTouchDistance(event.touches);
+    if (!distance || !pinchState.current.initialDistance) return;
+    const pinchRatio = distance / pinchState.current.initialDistance;
+    const nextScale = pinchState.current.startScale * pinchRatio;
+    const maxScale = getMaxScale();
+    const clamped = Math.min(maxScale, Math.max(50, nextScale));
+    setScale(Math.round(clamped));
+  };
+
+  const handlePinchEnd = () => {
+    pinchState.current.active = false;
+    pinchState.current.initialDistance = 0;
   };
 
   // Export with background (like macOS screenshot)
@@ -891,7 +938,7 @@ export default function CardGenerator() {
         >
 
           {/* --- MOBILE TABS HEADER --- */}
-          <div className="lg:hidden flex items-center border-b border-gray-200 bg-white shrink-0">
+          <div className="lg:hidden flex items-center border-b border-gray-200 bg-white shrink-0 sticky top-0 z-20">
             {(['theme', 'font', 'style'] as const).map((tab) => (
               <button
                 key={tab}
@@ -907,7 +954,7 @@ export default function CardGenerator() {
             ))}
           </div>
 
-          <div className="p-5 space-y-6 pb-20 lg:pb-5"> {/* Extra padding bottom for mobile overlay controls */}
+          <div className="px-4 pt-2 pb-20 space-y-4 lg:p-5 lg:space-y-6 lg:pb-5 lg:pt-5"> {/* Extra padding bottom for mobile overlay controls */}
 
             {/* Theme Selector (Visible on Desktop OR Mobile Theme Tab) */}
             <div className={cn("space-y-3", "lg:block", mobileActiveTab === 'theme' ? "block" : "hidden")}>
@@ -934,13 +981,13 @@ export default function CardGenerator() {
             </div>
 
             {/* Typography Controls (Visible on Desktop OR Mobile Font Tab) */}
-            <div className={cn("space-y-4", "lg:block lg:space-y-3", mobileActiveTab === 'font' ? "block" : "hidden")}>
+            <div className={cn("space-y-2 lg:space-y-3", "lg:block", mobileActiveTab === 'font' ? "block" : "hidden")}>
               <div className="hidden lg:flex items-center gap-2 text-xs font-bold text-slate-500 uppercase tracking-wider"> {/* Hidden title on mobile */}
                 <Type size={12} /> Typography
               </div>
 
               {/* Mobile: Stack vertically | Desktop: Stack vertically */}
-              <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-3 lg:gap-4">
 
                 {/* Font Family - Grid layout for 6 fonts */}
                 <div className="space-y-1.5 w-full">
@@ -983,7 +1030,7 @@ export default function CardGenerator() {
             </div>
 
             {/* Footer Text & Window Controls (Visible on Desktop OR Mobile Style Tab) */}
-            <div className={cn("space-y-3", "lg:block", mobileActiveTab === 'style' ? "block" : "hidden")}>
+            <div className={cn("space-y-2 lg:space-y-3", "lg:block", mobileActiveTab === 'style' ? "block" : "hidden")}>
               <div className="hidden lg:flex items-center gap-2 text-xs font-bold text-slate-500 uppercase tracking-wider"> {/* Hidden title on mobile */}
                 <Layout size={12} /> Appearance
               </div>
@@ -1153,6 +1200,10 @@ export default function CardGenerator() {
             <div
               className="transition-transform duration-200 ease-out origin-center will-change-transform my-auto"
               style={{ transform: `scale(${scale / 100})` }}
+              onTouchStart={handlePinchStart}
+              onTouchMove={handlePinchMove}
+              onTouchEnd={handlePinchEnd}
+              onTouchCancel={handlePinchEnd}
               onClick={() => {
                 // Only trigger edit mode on mobile if click target is within card area
                 if (window.innerWidth < 1024) {
@@ -1213,8 +1264,8 @@ export default function CardGenerator() {
                             <CornerUpLeft size={12} className="hover:text-black/60 transition-colors" />
                             <Star size={12} className="hover:text-yellow-400 transition-colors" />
                           </div>
-                          <div className="px-2 py-0.5 bg-black/5 rounded text-[8px] font-mono opacity-50 hidden sm:block">
-                            {new Date().toLocaleDateString()}
+                          <div className="px-2 py-0.5 bg-black/5 rounded text-[8px] font-mono opacity-50 hidden sm:block min-w-[60px] text-center">
+                            {todayDate || '—'}
                           </div>
                         </div>
                       </div>
