@@ -71,24 +71,24 @@
 }
 
 .novel-editor-wrapper .ProseMirror {
-  @apply p-4 outline-none min-h-[200px] text-sm text-slate-600 leading-relaxed;
+  @apply p-4 outline-none min-h-[200px] text-sm text-slate-600 dark:text-slate-300 leading-relaxed;
 }
 
 .novel-editor-wrapper .ProseMirror p.is-editor-empty:first-child::before {
-  @apply text-slate-400 float-left h-0 pointer-events-none;
+  @apply text-slate-400 dark:text-slate-600 float-left h-0 pointer-events-none;
   content: attr(data-placeholder);
 }
 
 .novel-editor-wrapper .ProseMirror h1 {
-  @apply text-2xl font-bold mb-4;
+  @apply text-2xl font-bold mb-4 dark:text-slate-100;
 }
 
 .novel-editor-wrapper .ProseMirror h2 {
-  @apply text-xl font-bold mb-3;
+  @apply text-xl font-bold mb-3 dark:text-slate-100;
 }
 
 .novel-editor-wrapper .ProseMirror h3 {
-  @apply text-lg font-bold mb-2;
+  @apply text-lg font-bold mb-2 dark:text-slate-100;
 }
 
 .novel-editor-wrapper .ProseMirror p {
@@ -109,11 +109,11 @@
 }
 
 .novel-editor-wrapper .ProseMirror blockquote {
-  @apply border-l-4 border-slate-300 pl-4 italic text-slate-500 my-4;
+  @apply border-l-4 border-slate-300 dark:border-slate-600 pl-4 italic text-slate-500 dark:text-slate-400 my-4;
 }
 
 .novel-editor-wrapper .ProseMirror code {
-  @apply bg-slate-100 px-1.5 py-0.5 rounded text-sm font-mono text-pink-600;
+  @apply bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-sm font-mono text-pink-600 dark:text-pink-400;
 }
 
 .novel-editor-wrapper .ProseMirror pre {
@@ -133,19 +133,38 @@
 }
 
 .novel-editor-wrapper .ProseMirror a {
-  @apply text-indigo-600 underline;
+  @apply text-indigo-600 dark:text-indigo-400 underline;
 }
 
 /* Novel command menu styles */
 .novel-editor-wrapper [data-novel-command-menu] {
-  @apply bg-white rounded-lg shadow-xl border border-slate-200 p-1 min-w-[200px];
+  @apply bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-slate-200 dark:border-gray-700 p-1 min-w-[200px];
 }
 
 .novel-editor-wrapper [data-novel-command-item] {
-  @apply px-3 py-2 rounded-md cursor-pointer text-sm text-slate-700;
+  @apply px-3 py-2 rounded-md cursor-pointer text-sm text-slate-700 dark:text-slate-300;
 }
 
 .novel-editor-wrapper [data-novel-command-item][data-selected="true"] {
-  @apply bg-indigo-50 text-indigo-700;
+  @apply bg-indigo-50 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-400;
+}
+
+/* Dark mode scrollbar */
+.dark ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: #1f2937;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #4b5563;
+  border-radius: 4px;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
 }
 

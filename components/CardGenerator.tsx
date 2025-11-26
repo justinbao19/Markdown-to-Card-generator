@@ -46,7 +46,9 @@ import {
   Reply,
   CornerUpLeft,
   PenLine,
-  PilcrowSquare
+  PilcrowSquare,
+  Moon,
+  Sun
 } from "lucide-react";
 import dynamic from "next/dynamic";
 import { common, createLowlight } from "lowlight";
@@ -418,6 +420,7 @@ export default function CardGenerator() {
     startScale: 100,
   });
   const [todayDate, setTodayDate] = useState("");
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
   // Export resolution options
   const EXPORT_RESOLUTIONS = [
@@ -517,6 +520,28 @@ export default function CardGenerator() {
   useEffect(() => {
     setTodayDate(new Date().toLocaleDateString());
   }, []);
+
+  // Dark mode initialization and toggle effect
+  useEffect(() => {
+    // Check for saved preference or system preference
+    const savedMode = localStorage.getItem('darkMode');
+    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    
+    if (savedMode === 'true' || (savedMode === null && systemPrefersDark)) {
+      setIsDarkMode(true);
+      document.documentElement.classList.add('dark');
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('darkMode', 'true');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('darkMode', 'false');
+    }
+  }, [isDarkMode]);
 
   // Helper: Get max scale based on screen size (Mobile: 100%, Desktop: 150%)
   const getMaxScale = () => {
@@ -630,7 +655,7 @@ export default function CardGenerator() {
   return (
     <div
       className={cn(
-        "flex flex-col lg:flex-row h-screen w-full overflow-hidden bg-white text-slate-900 font-sans",
+        "flex flex-col lg:flex-row h-screen w-full overflow-hidden bg-white dark:bg-gray-950 text-slate-900 dark:text-slate-100 font-sans transition-colors duration-300",
         isDragging && "cursor-col-resize select-none",
         isResizingEditor && "cursor-row-resize select-none"
       )}
@@ -643,14 +668,14 @@ export default function CardGenerator() {
           onClick={() => setShowMobileInfo(false)}
         >
           <div
-            className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl animate-in slide-in-from-bottom-4 duration-300"
+            className="bg-white dark:bg-gray-900 rounded-2xl p-6 max-w-sm w-full shadow-2xl animate-in slide-in-from-bottom-4 duration-300"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between mb-4 pb-3 border-b border-gray-100">
-              <div className="text-sm font-bold text-slate-900 uppercase tracking-wider">Markdown Guide</div>
+            <div className="flex items-center justify-between mb-4 pb-3 border-b border-gray-100 dark:border-gray-800">
+              <div className="text-sm font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider">Markdown Guide</div>
               <button
                 onClick={() => setShowMobileInfo(false)}
-                className="p-1.5 rounded-full hover:bg-gray-100 text-slate-400 transition-colors"
+                className="p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-slate-400 dark:text-slate-500 transition-colors"
               >
                 <X size={18} />
               </button>
@@ -658,36 +683,36 @@ export default function CardGenerator() {
 
             <div className="space-y-3 text-sm">
               <div className="flex items-center justify-between">
-                <code className="bg-gray-100 px-2 py-1 rounded text-indigo-600 font-mono text-xs">**Bold**</code>
-                <span className="font-bold text-slate-600">Bold Text</span>
+                <code className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded text-indigo-600 dark:text-indigo-400 font-mono text-xs">**Bold**</code>
+                <span className="font-bold text-slate-600 dark:text-slate-400">Bold Text</span>
               </div>
               <div className="flex items-center justify-between">
-                <code className="bg-gray-100 px-2 py-1 rounded text-indigo-600 font-mono text-xs">*Italic*</code>
-                <span className="italic text-slate-600">Italic Text</span>
+                <code className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded text-indigo-600 dark:text-indigo-400 font-mono text-xs">*Italic*</code>
+                <span className="italic text-slate-600 dark:text-slate-400">Italic Text</span>
               </div>
               <div className="flex items-center justify-between">
-                <code className="bg-gray-100 px-2 py-1 rounded text-indigo-600 font-mono text-xs"># Heading</code>
-                <span className="font-bold text-slate-800">Heading 1</span>
+                <code className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded text-indigo-600 dark:text-indigo-400 font-mono text-xs"># Heading</code>
+                <span className="font-bold text-slate-800 dark:text-slate-200">Heading 1</span>
               </div>
               <div className="flex items-center justify-between">
-                <code className="bg-gray-100 px-2 py-1 rounded text-indigo-600 font-mono text-xs">&gt; Quote</code>
-                <span className="border-l-2 border-indigo-400 pl-2 text-slate-500 italic">Quote</span>
+                <code className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded text-indigo-600 dark:text-indigo-400 font-mono text-xs">&gt; Quote</code>
+                <span className="border-l-2 border-indigo-400 pl-2 text-slate-500 dark:text-slate-400 italic">Quote</span>
               </div>
               <div className="flex items-center justify-between">
-                <code className="bg-gray-100 px-2 py-1 rounded text-indigo-600 font-mono text-xs">- List</code>
-                <div className="flex items-center gap-1 text-slate-600">
-                  <div className="w-1.5 h-1.5 bg-slate-400 rounded-full"></div>
+                <code className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded text-indigo-600 dark:text-indigo-400 font-mono text-xs">- List</code>
+                <div className="flex items-center gap-1 text-slate-600 dark:text-slate-400">
+                  <div className="w-1.5 h-1.5 bg-slate-400 dark:bg-slate-500 rounded-full"></div>
                   <span>List Item</span>
                 </div>
               </div>
               <div className="flex items-center justify-between">
-                <code className="bg-gray-100 px-2 py-1 rounded text-indigo-600 font-mono text-xs">`Code`</code>
-                <span className="bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded border border-indigo-100">Code</span>
+                <code className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded text-indigo-600 dark:text-indigo-400 font-mono text-xs">`Code`</code>
+                <span className="bg-indigo-50 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 px-1.5 py-0.5 rounded border border-indigo-100 dark:border-indigo-800">Code</span>
               </div>
             </div>
 
-            <div className="mt-4 pt-3 border-t border-gray-100 text-xs text-slate-400 leading-relaxed">
-              Tips: Use <code className="font-mono text-slate-500 text-xs">---</code> for divider.
+            <div className="mt-4 pt-3 border-t border-gray-100 dark:border-gray-800 text-xs text-slate-400 dark:text-slate-500 leading-relaxed">
+              Tips: Use <code className="font-mono text-slate-500 dark:text-slate-400 text-xs">---</code> for divider.
             </div>
           </div>
         </div>
@@ -695,11 +720,11 @@ export default function CardGenerator() {
 
       {/* --- MOBILE FULLSCREEN EDITOR OVERLAY --- */}
       {isMobileEditing && (
-        <div className="fixed inset-0 z-50 bg-white flex flex-col animate-in slide-in-from-bottom-10 duration-200 lg:hidden">
+        <div className="fixed inset-0 z-50 bg-white dark:bg-gray-950 flex flex-col animate-in slide-in-from-bottom-10 duration-200 lg:hidden">
           {/* Header with mode toggle */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-white">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900">
             {/* Mode Toggle */}
-            <div className="flex bg-gray-100 p-0.5 rounded-lg">
+            <div className="flex bg-gray-100 dark:bg-gray-800 p-0.5 rounded-lg">
               <button
                 onClick={() => {
                   if (editorMode === 'wysiwyg' && content.trim().startsWith('<')) {
@@ -710,8 +735,8 @@ export default function CardGenerator() {
                 className={cn(
                   "px-3 py-1.5 text-xs font-medium rounded-md transition-all flex items-center gap-1.5",
                   editorMode === 'markdown' 
-                    ? "bg-white text-indigo-600 shadow-sm" 
-                    : "text-slate-500"
+                    ? "bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-400 shadow-sm" 
+                    : "text-slate-500 dark:text-slate-400"
                 )}
               >
                 <Code size={12} />
@@ -727,8 +752,8 @@ export default function CardGenerator() {
                 className={cn(
                   "px-3 py-1.5 text-xs font-medium rounded-md transition-all flex items-center gap-1.5",
                   editorMode === 'wysiwyg' 
-                    ? "bg-white text-indigo-600 shadow-sm" 
-                    : "text-slate-500"
+                    ? "bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-400 shadow-sm" 
+                    : "text-slate-500 dark:text-slate-400"
                 )}
               >
                 <PilcrowSquare size={12} />
@@ -738,7 +763,7 @@ export default function CardGenerator() {
             
             <button
               onClick={() => setIsMobileEditing(false)}
-              className="text-indigo-600 font-semibold text-sm flex items-center gap-1 px-3 py-1.5 bg-indigo-50 rounded-full"
+              className="text-indigo-600 dark:text-indigo-400 font-semibold text-sm flex items-center gap-1 px-3 py-1.5 bg-indigo-50 dark:bg-indigo-900/50 rounded-full"
             >
               <Check size={14} />
               Done
@@ -749,13 +774,13 @@ export default function CardGenerator() {
           {editorMode === 'markdown' ? (
             <>
               <textarea
-                className="flex-1 w-full p-5 resize-none outline-none font-mono text-base text-slate-700 leading-relaxed"
+                className="flex-1 w-full p-5 resize-none outline-none font-mono text-base text-slate-700 dark:text-slate-300 bg-transparent leading-relaxed placeholder:text-slate-400 dark:placeholder:text-slate-600"
                 placeholder="Type markdown..."
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 autoFocus
               />
-              <div className="px-4 py-3 bg-slate-50 border-t border-gray-100 text-xs text-slate-400 flex gap-4 font-mono overflow-x-auto">
+              <div className="px-4 py-3 bg-slate-50 dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800 text-xs text-slate-400 dark:text-slate-500 flex gap-4 font-mono overflow-x-auto">
                 <span>**Bold**</span>
                 <span>*Italic*</span>
                 <span># Header</span>
@@ -780,7 +805,7 @@ export default function CardGenerator() {
         id="sidebar-panel"
         style={{ '--sidebar-width': `${sidebarWidth}px` } as React.CSSProperties}
         className={cn(
-          "flex-shrink-0 flex flex-col border-r border-gray-200 bg-white z-20 shadow-lg relative group/sidebar transition-all",
+          "flex-shrink-0 flex flex-col border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 z-20 shadow-lg relative group/sidebar transition-all",
           // Desktop: Sidebar with dynamic width, Mobile: Full width bottom panel
           "w-full lg:w-[var(--sidebar-width)]",
           "h-[40vh] lg:h-full order-2 lg:order-1" // Mobile: 40% height, Desktop: Full height
@@ -788,13 +813,22 @@ export default function CardGenerator() {
       >
 
         {/* Header (Desktop Only) */}
-        <div className="hidden lg:flex h-14 px-4 border-b border-gray-100 items-center gap-3 bg-white shrink-0 relative z-30">
+        <div className="hidden lg:flex h-14 px-4 border-b border-gray-100 dark:border-gray-800 items-center gap-3 bg-white dark:bg-gray-900 shrink-0 relative z-30">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white shadow-md shadow-indigo-200">
+            <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white shadow-md shadow-indigo-200 dark:shadow-indigo-900/50">
               <Sparkles size={16} />
             </div>
-            <span className="font-bold text-slate-800 tracking-tight">FlipMark</span>
+            <span className="font-bold text-slate-800 dark:text-slate-200 tracking-tight">FlipMark</span>
           </div>
+
+          {/* Dark Mode Toggle */}
+          <button
+            onClick={() => setIsDarkMode(!isDarkMode)}
+            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all"
+            title={isDarkMode ? "切换到亮色模式" : "切换到暗色模式"}
+          >
+            {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
+          </button>
 
           {/* Info Tooltip */}
           <div className="relative group/info flex-shrink-0">
@@ -850,13 +884,13 @@ export default function CardGenerator() {
           style={{ height: `${editorHeight}%` }}
         >
           {/* Editor Header with Mode Toggle */}
-          <div className="flex items-center justify-between px-4 py-2 border-b border-gray-100 shrink-0">
+          <div className="flex items-center justify-between px-4 py-2 border-b border-gray-100 dark:border-gray-800 shrink-0">
             <div className="flex items-center gap-2">
-              <PenLine size={12} className="text-slate-400" />
-              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Editor</span>
+              <PenLine size={12} className="text-slate-400 dark:text-slate-500" />
+              <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Editor</span>
             </div>
             {/* Mode Toggle */}
-            <div className="flex bg-gray-200/50 p-0.5 rounded-md">
+            <div className="flex bg-gray-200/50 dark:bg-gray-800 p-0.5 rounded-md">
               <button
                 onClick={() => {
                   // Convert HTML back to Markdown when switching to Markdown mode
@@ -868,8 +902,8 @@ export default function CardGenerator() {
                 className={cn(
                   "px-2 py-1 text-[10px] font-medium rounded transition-all flex items-center gap-1",
                   editorMode === 'markdown' 
-                    ? "bg-white text-indigo-600 shadow-sm" 
-                    : "text-slate-500 hover:text-slate-700"
+                    ? "bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-400 shadow-sm" 
+                    : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"
                 )}
                 title="Markdown mode"
               >
@@ -887,8 +921,8 @@ export default function CardGenerator() {
                 className={cn(
                   "px-2 py-1 text-[10px] font-medium rounded transition-all flex items-center gap-1",
                   editorMode === 'wysiwyg' 
-                    ? "bg-white text-indigo-600 shadow-sm" 
-                    : "text-slate-500 hover:text-slate-700"
+                    ? "bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-400 shadow-sm" 
+                    : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"
                 )}
                 title="Visual editor (Notion-style)"
               >
@@ -901,7 +935,7 @@ export default function CardGenerator() {
           {/* Markdown Editor */}
           {editorMode === 'markdown' && (
             <textarea
-              className="flex-1 w-full p-4 resize-none outline-none font-mono text-sm text-slate-600 leading-relaxed bg-transparent selection:bg-indigo-100"
+              className="flex-1 w-full p-4 resize-none outline-none font-mono text-sm text-slate-600 dark:text-slate-300 leading-relaxed bg-transparent selection:bg-indigo-100 dark:selection:bg-indigo-900 placeholder:text-slate-400 dark:placeholder:text-slate-600"
               placeholder="Type markdown..."
               value={content}
               onChange={(e) => setContent(e.target.value)}
@@ -923,33 +957,33 @@ export default function CardGenerator() {
 
         {/* Draggable Resizer (Desktop Only) */}
         <div
-          className="hidden lg:flex h-2 bg-slate-100 hover:bg-indigo-100 cursor-row-resize items-center justify-center border-y border-gray-200 transition-colors group/editor-resizer shrink-0"
+          className="hidden lg:flex h-2 bg-slate-100 dark:bg-gray-800 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 cursor-row-resize items-center justify-center border-y border-gray-200 dark:border-gray-700 transition-colors group/editor-resizer shrink-0"
           onMouseDown={startResizingEditor}
         >
-          <div className="w-12 h-1 bg-slate-300 rounded-full group-hover/editor-resizer:bg-indigo-400 transition-colors" />
+          <div className="w-12 h-1 bg-slate-300 dark:bg-gray-600 rounded-full group-hover/editor-resizer:bg-indigo-400 transition-colors" />
         </div>
 
         {/* Style Controls (Always Visible - Bottom Half on Desktop, Full Panel on Mobile) */}
         <div 
           className={cn(
-            "bg-slate-50 flex flex-col overflow-y-auto",
+            "bg-slate-50 dark:bg-gray-900/50 flex flex-col overflow-y-auto",
             "h-full lg:flex-1" // Mobile takes full height, Desktop takes remaining space
           )}
         >
 
           {/* --- MOBILE TABS HEADER --- */}
-          <div className="lg:hidden flex items-center border-b border-gray-200 bg-white shrink-0 sticky top-0 z-20">
+          <div className="lg:hidden flex items-center border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shrink-0 sticky top-0 z-20">
             {(['theme', 'font', 'style'] as const).map((tab) => (
               <button
                 key={tab}
                 onClick={() => setMobileActiveTab(tab)}
                 className={cn(
                   "flex-1 py-3 text-xs font-bold uppercase tracking-wider transition-colors relative",
-                  mobileActiveTab === tab ? "text-indigo-600 bg-indigo-50/50" : "text-slate-400"
+                  mobileActiveTab === tab ? "text-indigo-600 dark:text-indigo-400 bg-indigo-50/50 dark:bg-indigo-900/20" : "text-slate-400 dark:text-slate-500"
                 )}
               >
                 {tab}
-                {mobileActiveTab === tab && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-indigo-600" />}
+                {mobileActiveTab === tab && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-indigo-600 dark:bg-indigo-400" />}
               </button>
             ))}
           </div>
@@ -958,7 +992,7 @@ export default function CardGenerator() {
 
             {/* Theme Selector (Visible on Desktop OR Mobile Theme Tab) */}
             <div className={cn("space-y-3", "lg:block", mobileActiveTab === 'theme' ? "block" : "hidden")}>
-              <div className="hidden lg:flex items-center gap-2 text-xs font-bold text-slate-500 uppercase tracking-wider"> {/* Hidden title on mobile */}
+              <div className="hidden lg:flex items-center gap-2 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider"> {/* Hidden title on mobile */}
                 <Palette size={12} /> Theme
               </div>
               <div className="grid grid-cols-[repeat(auto-fill,100px)] gap-2 justify-between">
@@ -969,12 +1003,12 @@ export default function CardGenerator() {
                     className={cn(
                       "group relative flex flex-col items-center gap-2 p-2 rounded-xl border transition-all duration-200 flex-shrink-0",
                       theme === key
-                        ? "bg-white border-indigo-500 shadow-sm ring-1 ring-indigo-500/20"
-                        : "bg-white border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                        ? "bg-white dark:bg-gray-800 border-indigo-500 shadow-sm ring-1 ring-indigo-500/20"
+                        : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
                     )}
                   >
-                    <div className={cn("w-full h-8 rounded-md shadow-inner", t.preview)} />
-                    <span className="text-[10px] font-medium text-slate-600">{t.name}</span>
+                    <div className={cn("w-full h-8 rounded-md shadow-inner border border-black/5 dark:border-white/20", t.preview)} />
+                    <span className="text-[10px] font-medium text-slate-600 dark:text-slate-400">{t.name}</span>
                   </button>
                 ))}
               </div>
@@ -982,7 +1016,7 @@ export default function CardGenerator() {
 
             {/* Typography Controls (Visible on Desktop OR Mobile Font Tab) */}
             <div className={cn("space-y-2 lg:space-y-3", "lg:block", mobileActiveTab === 'font' ? "block" : "hidden")}>
-              <div className="hidden lg:flex items-center gap-2 text-xs font-bold text-slate-500 uppercase tracking-wider"> {/* Hidden title on mobile */}
+              <div className="hidden lg:flex items-center gap-2 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider"> {/* Hidden title on mobile */}
                 <Type size={12} /> Typography
               </div>
 
@@ -991,15 +1025,15 @@ export default function CardGenerator() {
 
                 {/* Font Family - Grid layout for 6 fonts */}
                 <div className="space-y-1.5 w-full">
-                  <label className="text-[10px] text-slate-400 font-medium">Font Family</label>
-                  <div className="grid grid-cols-3 gap-1 bg-gray-200/50 p-1 rounded-lg w-full">
+                  <label className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">Font Family</label>
+                  <div className="grid grid-cols-3 gap-1 bg-gray-200/50 dark:bg-gray-800 p-1 rounded-lg w-full">
                     {(Object.keys(FONTS) as Array<keyof typeof FONTS>).map((f) => (
                       <button
                         key={f}
                         onClick={() => setFont(f)}
                         className={cn(
                           "py-2 lg:py-1.5 text-xs font-medium rounded-md transition-all",
-                          font === f ? "bg-white text-indigo-600 shadow-sm" : "text-slate-500 hover:text-slate-700"
+                          font === f ? "bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-400 shadow-sm" : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"
                         )}
                       >
                         {FONTS[f].name}
@@ -1010,15 +1044,15 @@ export default function CardGenerator() {
 
                 {/* Font Size */}
                 <div className="space-y-1.5 w-full">
-                  <label className="text-[10px] text-slate-400 font-medium">Size</label>
-                  <div className="flex bg-gray-200/50 p-1 rounded-lg w-full">
+                  <label className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">Size</label>
+                  <div className="flex bg-gray-200/50 dark:bg-gray-800 p-1 rounded-lg w-full">
                     {(Object.keys(SIZES) as Array<keyof typeof SIZES>).map((s) => (
                       <button
                         key={s}
                         onClick={() => setFontSize(s)}
                         className={cn(
                           "flex-1 py-2 lg:py-1.5 text-xs font-medium rounded-md transition-all",
-                          fontSize === s ? "bg-white text-indigo-600 shadow-sm" : "text-slate-500 hover:text-slate-700"
+                          fontSize === s ? "bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-400 shadow-sm" : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"
                         )}
                       >
                         {s === 'sm' ? 'S' : s === 'base' ? 'M' : s === 'lg' ? 'L' : 'XL'}
@@ -1031,22 +1065,22 @@ export default function CardGenerator() {
 
             {/* Footer Text & Window Controls (Visible on Desktop OR Mobile Style Tab) */}
             <div className={cn("space-y-2 lg:space-y-3", "lg:block", mobileActiveTab === 'style' ? "block" : "hidden")}>
-              <div className="hidden lg:flex items-center gap-2 text-xs font-bold text-slate-500 uppercase tracking-wider"> {/* Hidden title on mobile */}
+              <div className="hidden lg:flex items-center gap-2 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider"> {/* Hidden title on mobile */}
                 <Layout size={12} /> Appearance
               </div>
 
                 {/* Footer Text Input */}
                 <div className="space-y-1.5">
-                  <span className="text-[10px] text-slate-400 font-medium">Footer Text</span>
-                  <div className="flex items-center gap-2 p-2 bg-white rounded-xl border border-gray-200">
-                     <div className="p-1.5 bg-gray-100 text-slate-500 rounded-md">
+                  <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">Footer Text</span>
+                  <div className="flex items-center gap-2 p-2 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
+                     <div className="p-1.5 bg-gray-100 dark:bg-gray-700 text-slate-500 dark:text-slate-400 rounded-md">
                         <CreditCard size={14} />
                      </div>
                      <input 
                         type="text"
                         value={footerText}
                         onChange={(e) => setFooterText(e.target.value)}
-                        className="flex-1 text-xs font-medium text-slate-700 outline-none placeholder:text-slate-400"
+                        className="flex-1 text-xs font-medium text-slate-700 dark:text-slate-300 bg-transparent outline-none placeholder:text-slate-400 dark:placeholder:text-slate-600"
                         placeholder="Footer text..."
                      />
                   </div>
@@ -1054,8 +1088,8 @@ export default function CardGenerator() {
 
                 {/* Symbol Selector */}
                 <div className="space-y-1.5">
-                  <span className="text-[10px] text-slate-400 font-medium">Brand Symbol</span>
-                  <div className="flex flex-wrap gap-1.5 p-2 bg-white rounded-xl border border-gray-200">
+                  <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">Brand Symbol</span>
+                  <div className="flex flex-wrap gap-1.5 p-2 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
                     {(Object.keys(SYMBOLS) as Array<keyof typeof SYMBOLS>).map((s) => {
                       const IconComponent = SYMBOLS[s].icon;
                       return (
@@ -1065,8 +1099,8 @@ export default function CardGenerator() {
                           className={cn(
                             "p-1.5 rounded-md transition-all",
                             footerIcon === s 
-                              ? "bg-indigo-50 text-indigo-600 shadow-sm" 
-                              : "text-slate-400 hover:bg-gray-50 hover:text-slate-600"
+                              ? "bg-indigo-50 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 shadow-sm" 
+                              : "text-slate-400 dark:text-slate-500 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-slate-600 dark:hover:text-slate-300"
                           )}
                           title={s}
                         >
@@ -1079,7 +1113,7 @@ export default function CardGenerator() {
 
                 {/* Window Decoration Selector */}
                 <div className="space-y-1.5">
-                  <span className="text-[10px] text-slate-400 font-medium">Window Style</span>
+                  <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">Window Style</span>
                   <div className="grid grid-cols-3 gap-2">
                     {(Object.keys(DECORATIONS) as Array<keyof typeof DECORATIONS>).map((d) => (
                       <button 
@@ -1088,8 +1122,8 @@ export default function CardGenerator() {
                         className={cn(
                           "py-1.5 text-[10px] font-medium rounded-md transition-all border",
                           decoration === d 
-                            ? "bg-indigo-50 border-indigo-200 text-indigo-700" 
-                            : "bg-white border-gray-200 text-slate-600 hover:border-gray-300"
+                            ? "bg-indigo-50 dark:bg-indigo-900/50 border-indigo-200 dark:border-indigo-700 text-indigo-700 dark:text-indigo-400" 
+                            : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-slate-600 dark:text-slate-400 hover:border-gray-300 dark:hover:border-gray-600"
                         )}
                       >
                         {DECORATIONS[d].name}
@@ -1100,7 +1134,7 @@ export default function CardGenerator() {
 
                 {/* Canvas Pattern Selector */}
                 <div className="space-y-1.5">
-                  <span className="text-[10px] text-slate-400 font-medium">Canvas Pattern</span>
+                  <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">Canvas Pattern</span>
                   <div className="grid grid-cols-5 gap-2">
                     {(Object.keys(PATTERNS) as Array<keyof typeof PATTERNS>).map((p) => {
                       // Smaller preview sizes for better visibility in buttons
@@ -1118,13 +1152,13 @@ export default function CardGenerator() {
                           className={cn(
                             "relative h-12 rounded-lg transition-all border-2 overflow-hidden group/pattern",
                             pattern === p 
-                              ? "border-indigo-400 ring-2 ring-indigo-200" 
-                              : "border-gray-200 hover:border-gray-300"
+                              ? "border-indigo-400 ring-2 ring-indigo-200 dark:ring-indigo-800" 
+                              : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
                           )}
                         >
                           {/* Pattern Preview Background */}
                           <div 
-                            className="absolute inset-0 bg-slate-50"
+                            className="absolute inset-0 bg-slate-50 dark:bg-gray-800"
                             style={{
                               backgroundImage: PATTERNS[p].css,
                               backgroundSize: previewSizes[p] || PATTERNS[p].size,
@@ -1135,7 +1169,7 @@ export default function CardGenerator() {
                             "absolute inset-x-0 bottom-0 py-0.5 text-[9px] font-medium backdrop-blur-sm transition-colors",
                             pattern === p 
                               ? "bg-indigo-500/90 text-white" 
-                              : "bg-white/80 text-slate-600 group-hover/pattern:bg-white/90"
+                              : "bg-white/80 dark:bg-gray-900/80 text-slate-600 dark:text-slate-400 group-hover/pattern:bg-white/90 dark:group-hover/pattern:bg-gray-900/90"
                           )}>
                             {PATTERNS[p].name}
                           </div>
@@ -1160,8 +1194,8 @@ export default function CardGenerator() {
           className="hidden lg:block absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-indigo-500 transition-colors z-50 group/resizer"
           onMouseDown={startResizing}
         >
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-8 bg-white border border-gray-200 rounded-full shadow-sm flex items-center justify-center opacity-0 group-hover/resizer:opacity-100 transition-opacity pointer-events-none">
-            <GripVertical size={12} className="text-slate-400" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-8 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full shadow-sm flex items-center justify-center opacity-0 group-hover/resizer:opacity-100 transition-opacity pointer-events-none">
+            <GripVertical size={12} className="text-slate-400 dark:text-slate-500" />
           </div>
         </div>
       </div>
@@ -1175,21 +1209,36 @@ export default function CardGenerator() {
 
         {/* Pattern Background */}
         {pattern !== 'none' && (
-          <div className="absolute inset-0 pointer-events-none"
+          <div 
+            className="absolute inset-0 pointer-events-none transition-opacity duration-300"
             style={{
               backgroundImage: PATTERNS[pattern].css,
-              backgroundSize: PATTERNS[pattern].size
+              backgroundSize: PATTERNS[pattern].size,
+              // 深色主题(Dev Dark, Midnight Blue)下降低 pattern 透明度
+              opacity: (theme === 'obsidian' || theme === 'midnight') ? 0.15 : 1
             }}>
           </div>
         )}
 
-        {/* Mobile Info Icon (Fixed Top Right) */}
-        <button
-          className="lg:hidden fixed top-4 right-4 z-40 p-3 bg-white/90 backdrop-blur-md border border-gray-200 rounded-full shadow-xl text-slate-400 hover:text-indigo-600 transition-all active:scale-95"
-          onClick={() => setShowMobileInfo(true)}
-        >
-          <Info size={20} />
-        </button>
+        {/* Dark Mode Overlay - adds a subtle dark tint over canvas in dark mode */}
+        <div className="absolute inset-0 pointer-events-none bg-black/0 dark:bg-black/40 transition-colors duration-300" />
+
+        {/* Mobile Info & Dark Mode Icons (Fixed Top Right) */}
+        <div className="lg:hidden fixed top-4 right-4 z-40 flex items-center gap-2">
+          <button
+            className="p-3 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border border-gray-200 dark:border-gray-700 rounded-full shadow-xl text-slate-400 dark:text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all active:scale-95"
+            onClick={() => setIsDarkMode(!isDarkMode)}
+            title={isDarkMode ? "切换到亮色模式" : "切换到暗色模式"}
+          >
+            {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
+          </button>
+          <button
+            className="p-3 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border border-gray-200 dark:border-gray-700 rounded-full shadow-xl text-slate-400 dark:text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all active:scale-95"
+            onClick={() => setShowMobileInfo(true)}
+          >
+            <Info size={20} />
+          </button>
+        </div>
 
         {/* Scrollable Canvas Area */}
         <div className="flex-1 w-full h-full overflow-y-auto overflow-x-hidden custom-scrollbar">
@@ -1368,7 +1417,7 @@ export default function CardGenerator() {
         {/* --- FLOATING ACTION BAR (Export Only on Mobile maybe? No, keep Zoom) --- */}
         {/* On mobile, this bar floats above the Style Controls. We might want to adjust position */}
         <div className={cn(
-          "absolute left-1/2 -translate-x-1/2 flex items-center gap-1 p-1.5 bg-white/90 backdrop-blur-xl border border-white/20 shadow-[0_8px_30px_rgb(0,0,0,0.12)] rounded-full z-30 animate-in slide-in-from-bottom-6",
+          "absolute left-1/2 -translate-x-1/2 flex items-center gap-1 p-1.5 bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl border border-white/20 dark:border-gray-700/50 shadow-[0_8px_30px_rgb(0,0,0,0.12)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)] rounded-full z-30 animate-in slide-in-from-bottom-6",
           "bottom-6 lg:bottom-8" // Adjust bottom position
         )}>
 
@@ -1376,7 +1425,7 @@ export default function CardGenerator() {
           <div className="flex items-center gap-2 px-3 py-1.5">
             <button
               onClick={(e) => { e.stopPropagation(); setScale(s => Math.max(50, s - 10)); }}
-              className="text-slate-500 hover:text-slate-800 transition-colors"
+              className="text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-colors"
             >
               <Minus size={16} />
             </button>
@@ -1388,26 +1437,26 @@ export default function CardGenerator() {
                 max="150"
                 value={scale}
                 onChange={(e) => setScale(Math.min(getMaxScale(), Number(e.target.value)))}
-                className="w-full h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+                className="w-full h-1 bg-slate-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer accent-indigo-600"
               />
             </div>
             <button
               onClick={(e) => { e.stopPropagation(); setScale(s => Math.min(getMaxScale(), s + 10)); }}
-              className="text-slate-500 hover:text-slate-800 transition-colors"
+              className="text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-colors"
             >
               <Plus size={16} />
             </button>
-            <span className="text-xs font-mono text-slate-400 w-9 text-right">{scale}%</span>
+            <span className="text-xs font-mono text-slate-400 dark:text-slate-500 w-9 text-right">{scale}%</span>
           </div>
 
-          <div className="w-px h-6 bg-gray-200 mx-1" />
+          <div className="w-px h-6 bg-gray-200 dark:bg-gray-700 mx-1" />
 
           {/* Export Action with Resolution Menu */}
           <div className="relative" ref={exportMenuRef}>
             <button
               onClick={(e) => { e.stopPropagation(); setShowExportMenu(!showExportMenu); }}
               disabled={isExporting}
-              className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-6 py-2 rounded-full font-medium text-sm transition-all shadow-lg hover:shadow-xl active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
+              className="flex items-center gap-2 bg-slate-900 dark:bg-indigo-600 hover:bg-slate-800 dark:hover:bg-indigo-500 text-white px-6 py-2 rounded-full font-medium text-sm transition-all shadow-lg hover:shadow-xl active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
             >
               {isExporting ? (
                 <span className="animate-pulse">Generating...</span>
@@ -1421,27 +1470,27 @@ export default function CardGenerator() {
             
             {/* Resolution Dropdown Menu */}
             {showExportMenu && !isExporting && (
-              <div className="absolute bottom-full mb-2 right-0 bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden min-w-[200px] animate-in fade-in slide-in-from-bottom-2 duration-150">
-                <div className="px-3 py-2 bg-slate-50 border-b border-gray-100">
-                  <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Export Resolution</span>
+              <div className="absolute bottom-full mb-2 right-0 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden min-w-[200px] animate-in fade-in slide-in-from-bottom-2 duration-150">
+                <div className="px-3 py-2 bg-slate-50 dark:bg-gray-900 border-b border-gray-100 dark:border-gray-700">
+                  <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Export Resolution</span>
                 </div>
                 <div className="py-1">
                   {EXPORT_RESOLUTIONS.map((res) => (
                     <button
                       key={res.name}
                       onClick={() => handleExport(res.scale)}
-                      className="w-full px-3 py-2.5 flex items-center justify-between hover:bg-indigo-50 transition-colors group"
+                      className="w-full px-3 py-2.5 flex items-center justify-between hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors group"
                     >
                       <div className="flex items-center gap-3">
-                        <span className="w-8 h-8 flex items-center justify-center bg-slate-100 group-hover:bg-indigo-100 rounded-lg text-xs font-bold text-slate-600 group-hover:text-indigo-600 transition-colors">
+                        <span className="w-8 h-8 flex items-center justify-center bg-slate-100 dark:bg-gray-700 group-hover:bg-indigo-100 dark:group-hover:bg-indigo-900/50 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
                           {res.name}
                         </span>
                         <div className="text-left">
-                          <div className="text-sm font-medium text-slate-700 group-hover:text-indigo-700">{res.label}</div>
-                          <div className="text-[10px] text-slate-400">{res.size}</div>
+                          <div className="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-indigo-700 dark:group-hover:text-indigo-400">{res.label}</div>
+                          <div className="text-[10px] text-slate-400 dark:text-slate-500">{res.size}</div>
                         </div>
                       </div>
-                      <Download size={14} className="text-slate-300 group-hover:text-indigo-400" />
+                      <Download size={14} className="text-slate-300 dark:text-slate-600 group-hover:text-indigo-400" />
                     </button>
                   ))}
                 </div>

@@ -243,8 +243,8 @@ function ToolbarButton({
       title={title}
       className={`p-1.5 rounded transition-colors ${
         isActive 
-          ? 'bg-indigo-100 text-indigo-600' 
-          : 'text-slate-500 hover:bg-slate-100 hover:text-slate-700'
+          ? 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400' 
+          : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-gray-700 hover:text-slate-700 dark:hover:text-slate-200'
       } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
     >
       {children}
@@ -296,8 +296,8 @@ function CodeBlockDropdown({
         title={isActive ? "Remove Code Block" : "Insert Code Block"}
         className={`p-1.5 rounded transition-colors flex items-center gap-0.5 ${
           isActive 
-            ? 'bg-indigo-100 text-indigo-600' 
-            : 'text-slate-500 hover:bg-slate-100 hover:text-slate-700'
+            ? 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400' 
+            : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-gray-700 hover:text-slate-700 dark:hover:text-slate-200'
         }`}
       >
         <FileCode size={16} />
@@ -305,13 +305,13 @@ function CodeBlockDropdown({
       </button>
       
       {isOpen && !isActive && (
-        <div className="absolute top-full right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-50 py-1 min-w-[140px] max-h-[280px] overflow-y-auto">
+        <div className="absolute top-full right-0 mt-1 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-lg shadow-lg z-50 py-1 min-w-[140px] max-h-[280px] overflow-y-auto">
           {LANGUAGES.map((lang) => (
             <button
               key={lang.value}
               type="button"
               onClick={() => insertCodeBlock(lang.value)}
-              className="w-full px-3 py-1.5 text-left text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors"
+              className="w-full px-3 py-1.5 text-left text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-gray-700 hover:text-slate-900 dark:hover:text-white transition-colors"
             >
               {lang.label}
             </button>
@@ -358,7 +358,7 @@ export default function NovelEditor({
     },
     editorProps: {
       attributes: {
-        class: 'prose prose-sm max-w-none focus:outline-none min-h-[150px] p-4 text-slate-600',
+        class: 'prose prose-sm max-w-none focus:outline-none min-h-[150px] p-4 text-slate-600 dark:text-slate-300',
       },
     },
   });
@@ -378,7 +378,7 @@ export default function NovelEditor({
   return (
     <div className={`flex flex-col h-full ${className}`}>
       {/* Toolbar */}
-      <div className="flex items-center gap-0.5 px-2 py-1.5 border-b border-slate-200 bg-slate-50/50 flex-wrap">
+      <div className="flex items-center gap-0.5 px-2 py-1.5 border-b border-slate-200 dark:border-gray-700 bg-slate-50/50 dark:bg-gray-800/50 flex-wrap">
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleBold().run()}
           isActive={editor.isActive('bold')}
@@ -395,7 +395,7 @@ export default function NovelEditor({
           <Italic size={16} />
         </ToolbarButton>
         
-        <div className="w-px h-5 bg-slate-200 mx-1" />
+        <div className="w-px h-5 bg-slate-200 dark:bg-gray-600 mx-1" />
         
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
@@ -421,7 +421,7 @@ export default function NovelEditor({
           <Heading3 size={16} />
         </ToolbarButton>
         
-        <div className="w-px h-5 bg-slate-200 mx-1" />
+        <div className="w-px h-5 bg-slate-200 dark:bg-gray-600 mx-1" />
         
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleBulletList().run()}
@@ -447,7 +447,7 @@ export default function NovelEditor({
           <Quote size={16} />
         </ToolbarButton>
         
-        <div className="w-px h-5 bg-slate-200 mx-1" />
+        <div className="w-px h-5 bg-slate-200 dark:bg-gray-600 mx-1" />
         
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleCode().run()}
@@ -462,7 +462,7 @@ export default function NovelEditor({
           isActive={editor.isActive('codeBlock')}
         />
         
-        <div className="w-px h-5 bg-slate-200 mx-1" />
+        <div className="w-px h-5 bg-slate-200 dark:bg-gray-600 mx-1" />
         
         <ToolbarButton
           onClick={() => editor.chain().focus().undo().run()}
@@ -498,6 +498,12 @@ export default function NovelEditor({
           font-size: 0.875em;
         }
         
+        /* Dark mode inline code */
+        .dark .ProseMirror code:not(pre code) {
+          background: #374151;
+          color: #f472b6;
+        }
+        
         /* Code block wrapper */
         .code-block-wrapper {
           position: relative;
@@ -521,6 +527,29 @@ export default function NovelEditor({
           color: inherit;
           font-size: inherit;
           padding: 0;
+        }
+        
+        /* Dark mode editor text colors */
+        .dark .ProseMirror p,
+        .dark .ProseMirror li {
+          color: #d1d5db;
+        }
+        
+        .dark .ProseMirror h1,
+        .dark .ProseMirror h2,
+        .dark .ProseMirror h3,
+        .dark .ProseMirror h4 {
+          color: #f3f4f6;
+        }
+        
+        .dark .ProseMirror blockquote {
+          border-left-color: #4b5563;
+          color: #9ca3af;
+        }
+        
+        .dark .ProseMirror ul li::marker,
+        .dark .ProseMirror ol li::marker {
+          color: #6b7280;
         }
         
         /* Syntax highlighting colors (VS Code Dark+ theme) */
