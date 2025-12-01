@@ -1284,7 +1284,7 @@ export default function CardGenerator() {
             ))}
           </div>
 
-          <div className="px-4 pt-2 pb-20 space-y-4 lg:p-5 lg:space-y-6 lg:pb-5 lg:pt-5"> {/* Extra padding bottom for mobile overlay controls */}
+            <div className="px-4 pt-2 pb-24 space-y-4 lg:p-5 lg:space-y-6 lg:pb-5 lg:pt-5"> {/* Extra padding bottom for mobile overlay controls */}
 
             {/* Theme Selector (Visible on Desktop OR Mobile Theme Tab) */}
             <div className={cn("space-y-3", "lg:block", mobileActiveTab === 'theme' ? "block" : "hidden")}>
@@ -1530,9 +1530,61 @@ export default function CardGenerator() {
                     })}
                   </div>
                 </div>
+
+                {/* Mobile Footer - Copyright & Social */}
+                <div className="lg:hidden flex flex-col items-center gap-2 pt-6 mt-4 border-t border-gray-100 dark:border-gray-800">
+                  <div className="flex items-center gap-1.5 text-[10px] text-slate-400 dark:text-slate-500">
+                    <span>© {new Date().getFullYear()}</span>
+                    <span className="font-medium text-slate-500 dark:text-slate-400">FlipMark</span>
+                    <span>· Made with</span>
+                    <Heart size={10} className="text-rose-400 fill-rose-400" />
+                  </div>
+                  <a 
+                    href="https://x.com/JustinBao_" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 text-[10px] text-slate-400 dark:text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                  >
+                    {/* X (Twitter) Icon */}
+                    <svg 
+                      viewBox="0 0 24 24" 
+                      className="w-3.5 h-3.5 fill-current"
+                      aria-hidden="true"
+                    >
+                      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                    </svg>
+                    <span>@JustinBao_</span>
+                  </a>
+                </div>
             </div>
 
           </div>
+        </div>
+
+        {/* Page Footer - Copyright & Social */}
+        <div className="hidden lg:flex items-center justify-between px-4 py-3 border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shrink-0">
+          <div className="flex items-center gap-1.5 text-[10px] text-slate-400 dark:text-slate-500">
+            <span>© {new Date().getFullYear()}</span>
+            <span className="font-medium text-slate-500 dark:text-slate-400">FlipMark</span>
+            <span className="hidden sm:inline">· Made with</span>
+            <Heart size={10} className="hidden sm:inline text-rose-400 fill-rose-400" />
+          </div>
+          <a 
+            href="https://x.com/JustinBao_" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 text-[10px] text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors group"
+          >
+            <span className="group-hover:underline">@JustinBao_</span>
+            {/* X (Twitter) Icon */}
+            <svg 
+              viewBox="0 0 24 24" 
+              className="w-3.5 h-3.5 fill-current"
+              aria-hidden="true"
+            >
+              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+            </svg>
+          </a>
         </div>
 
         {/* Resizer Handle (Desktop Only) */}
