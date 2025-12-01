@@ -97,7 +97,7 @@ function ResizableImageComponent({ node, updateAttributes, deleteNode }: any) {
   }, [deleteNode]);
 
   return (
-    <NodeViewWrapper className="image-wrapper relative inline-block my-2 group">
+    <NodeViewWrapper className="image-wrapper relative inline-block my-1 group">
       <img
         ref={imageRef}
         src={node.attrs.src}

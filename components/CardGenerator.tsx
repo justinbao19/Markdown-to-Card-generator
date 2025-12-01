@@ -413,6 +413,10 @@ export default function CardGenerator() {
   const [scale, setScale] = useState(100);
   const [isExporting, setIsExporting] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const [previewImageUrl, setPreviewImageUrl] = useState<string>('');
+  const [exportWithBackground, setExportWithBackground] = useState(true);
+  const [previewWithBackground, setPreviewWithBackground] = useState(true);
   const exportMenuRef = useRef<HTMLDivElement>(null);
   const pinchState = useRef({
     active: false,
@@ -421,6 +425,7 @@ export default function CardGenerator() {
   });
   const [todayDate, setTodayDate] = useState("");
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   // Export resolution options
   const EXPORT_RESOLUTIONS = [
@@ -518,6 +523,7 @@ export default function CardGenerator() {
   }, []);
 
   useEffect(() => {
+    setMounted(true);
     setTodayDate(new Date().toLocaleDateString());
   }, []);
 
@@ -585,64 +591,152 @@ export default function CardGenerator() {
     pinchState.current.initialDistance = 0;
   };
 
-  // Export with background (like macOS screenshot)
-  const handleExport = useCallback(async (pixelRatio: number = 2) => {
+  // Generate preview image
+  const generatePreview = useCallback(async (withBackground: boolean = true) => {
+    if (cardRef.current === null) return;
+    
+    try {
+      let dataUrl: string;
+      
+      if (withBackground) {
+        // Create a temporary container with background
+        const exportContainer = document.createElement('div');
+        exportContainer.style.cssText = `
+          width: 700px;
+          padding: 90px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: ${THEMES[theme].cssBg};
+          position: fixed;
+          top: 0;
+          left: 0;
+          z-index: 9999;
+        `;
+        
+        // Add pattern overlay (if not 'none')
+        if (pattern !== 'none') {
+          const patternOverlay = document.createElement('div');
+          patternOverlay.style.cssText = `
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background-image: ${PATTERNS[pattern].css};
+            background-size: ${PATTERNS[pattern].size};
+          `;
+          exportContainer.appendChild(patternOverlay);
+        }
+        
+        // Clone the actual card
+        const cardClone = cardRef.current.cloneNode(true) as HTMLElement;
+        cardClone.style.position = 'relative';
+        exportContainer.appendChild(cardClone);
+        
+        // Add to document temporarily
+        document.body.appendChild(exportContainer);
+        
+        // Wait a frame for styles to apply
+        await new Promise(resolve => requestAnimationFrame(resolve));
+        
+        // Generate preview with background
+        dataUrl = await toPng(exportContainer, { 
+          cacheBust: true, 
+          pixelRatio: 2,
+        });
+        
+        // Cleanup
+        document.body.removeChild(exportContainer);
+      } else {
+        // Generate preview without background (card only)
+        dataUrl = await toPng(cardRef.current, { 
+          cacheBust: true, 
+          pixelRatio: 2,
+        });
+      }
+      
+      // Set preview image
+      setPreviewImageUrl(dataUrl);
+      setShowPreview(true);
+    } catch (err) {
+      console.error('Failed to generate preview', err);
+    }
+  }, [cardRef, theme, pattern]);
+
+  // Toggle preview background and regenerate
+  const togglePreviewBackground = useCallback(async () => {
+    const newValue = !previewWithBackground;
+    setPreviewWithBackground(newValue);
+    await generatePreview(newValue);
+  }, [previewWithBackground, generatePreview]);
+
+  // Export with or without background
+  const handleExport = useCallback(async (pixelRatio: number = 2, withBackground: boolean = true) => {
     if (cardRef.current === null) return;
     setIsExporting(true);
     setShowExportMenu(false);
     
     try {
-      // Create a temporary container with background
-      const exportContainer = document.createElement('div');
-      exportContainer.style.cssText = `
-        width: 700px;
-        padding: 90px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: ${THEMES[theme].cssBg};
-        position: fixed;
-        top: 0;
-        left: 0;
-        z-index: 9999;
-      `;
+      let dataUrl: string;
       
-      // Add pattern overlay (if not 'none')
-      if (pattern !== 'none') {
-        const patternOverlay = document.createElement('div');
-        patternOverlay.style.cssText = `
-          position: absolute;
-          inset: 0;
-          pointer-events: none;
-          background-image: ${PATTERNS[pattern].css};
-          background-size: ${PATTERNS[pattern].size};
+      if (withBackground) {
+        // Create a temporary container with background
+        const exportContainer = document.createElement('div');
+        exportContainer.style.cssText = `
+          width: 700px;
+          padding: 90px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: ${THEMES[theme].cssBg};
+          position: fixed;
+          top: 0;
+          left: 0;
+          z-index: 9999;
         `;
-        exportContainer.appendChild(patternOverlay);
+        
+        // Add pattern overlay (if not 'none')
+        if (pattern !== 'none') {
+          const patternOverlay = document.createElement('div');
+          patternOverlay.style.cssText = `
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background-image: ${PATTERNS[pattern].css};
+            background-size: ${PATTERNS[pattern].size};
+          `;
+          exportContainer.appendChild(patternOverlay);
+        }
+        
+        // Clone the actual card
+        const cardClone = cardRef.current.cloneNode(true) as HTMLElement;
+        cardClone.style.position = 'relative';
+        exportContainer.appendChild(cardClone);
+        
+        // Add to document temporarily
+        document.body.appendChild(exportContainer);
+        
+        // Wait a frame for styles to apply
+        await new Promise(resolve => requestAnimationFrame(resolve));
+        
+        // Export with background
+        dataUrl = await toPng(exportContainer, { 
+          cacheBust: true, 
+          pixelRatio: pixelRatio,
+        });
+        
+        // Cleanup
+        document.body.removeChild(exportContainer);
+      } else {
+        // Export card only (no background)
+        dataUrl = await toPng(cardRef.current, { 
+          cacheBust: true, 
+          pixelRatio: pixelRatio,
+        });
       }
-      
-      // Clone the actual card
-      const cardClone = cardRef.current.cloneNode(true) as HTMLElement;
-      cardClone.style.position = 'relative';
-      exportContainer.appendChild(cardClone);
-      
-      // Add to document temporarily
-      document.body.appendChild(exportContainer);
-      
-      // Wait a frame for styles to apply
-      await new Promise(resolve => requestAnimationFrame(resolve));
-      
-      // Export
-      const dataUrl = await toPng(exportContainer, { 
-        cacheBust: true, 
-        pixelRatio: pixelRatio,
-      });
-      
-      // Cleanup
-      document.body.removeChild(exportContainer);
       
       // Download
       const link = document.createElement('a');
-      link.download = `flipmark-${theme}-${Date.now()}.png`;
+      link.download = `flipmark-${withBackground ? 'full' : 'card'}-${theme}-${Date.now()}.png`;
       link.href = dataUrl;
       link.click();
     } catch (err) {
@@ -660,6 +754,87 @@ export default function CardGenerator() {
         isResizingEditor && "cursor-row-resize select-none"
       )}
     >
+
+      {/* --- PREVIEW MODAL --- */}
+      {showPreview && (
+        <div 
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 preview-modal-backdrop"
+          onClick={() => setShowPreview(false)}
+        >
+          <div 
+            className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-hidden preview-modal-content flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
+              <div className="flex items-center gap-2">
+                <Monitor size={20} className="text-indigo-600 dark:text-indigo-400" />
+                <h3 className="font-bold text-slate-900 dark:text-slate-100">Export Preview</h3>
+              </div>
+              
+              {/* Background Toggle */}
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-slate-500 dark:text-slate-400">Background</span>
+                  <button
+                    onClick={togglePreviewBackground}
+                    className={cn(
+                      "relative w-10 h-5 rounded-full transition-colors duration-200 flex-shrink-0",
+                      previewWithBackground 
+                        ? "bg-indigo-500" 
+                        : "bg-slate-300 dark:bg-gray-600"
+                    )}
+                  >
+                    <span 
+                      className={cn(
+                        "absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow-md transition-all duration-200",
+                        previewWithBackground && "translate-x-5"
+                      )}
+                    />
+                  </button>
+                </div>
+                
+                <button
+                  onClick={() => setShowPreview(false)}
+                  className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+            </div>
+            
+            {/* Scrollable content */}
+            <div className="flex-1 overflow-y-auto p-6 min-h-0">
+              {previewImageUrl && (
+                <img 
+                  src={previewImageUrl} 
+                  alt="Export Preview" 
+                  className="w-full h-auto rounded-lg shadow-xl"
+                />
+              )}
+            </div>
+            
+            <div className="flex justify-end gap-3 p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+              <button
+                onClick={() => setShowPreview(false)}
+                className="px-4 py-2 rounded-lg bg-white dark:bg-gray-700 text-slate-700 dark:text-slate-200 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+              >
+                Close
+              </button>
+              <button
+                onClick={() => {
+                  setShowPreview(false);
+                  setShowExportMenu(true);
+                }}
+                className="px-4 py-2 rounded-lg bg-indigo-600 dark:bg-indigo-500 text-white hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-colors flex items-center gap-2"
+              >
+                <Download size={16} />
+                Export
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* --- MOBILE INFO MODAL --- */}
       {showMobileInfo && (
@@ -826,6 +1001,7 @@ export default function CardGenerator() {
             onClick={() => setIsDarkMode(!isDarkMode)}
             className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all"
             title={isDarkMode ? "切换到亮色模式" : "切换到暗色模式"}
+            suppressHydrationWarning
           >
             {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
           </button>
@@ -1224,11 +1400,12 @@ export default function CardGenerator() {
         <div className="absolute inset-0 pointer-events-none bg-black/0 dark:bg-black/40 transition-colors duration-300" />
 
         {/* Mobile Info & Dark Mode Icons (Fixed Top Right) */}
-        <div className="lg:hidden fixed top-4 right-4 z-40 flex items-center gap-2">
+        <div className="lg:hidden fixed top-4 right-4 z-40 flex items-center gap-2" suppressHydrationWarning>
           <button
             className="p-3 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border border-gray-200 dark:border-gray-700 rounded-full shadow-xl text-slate-400 dark:text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all active:scale-95"
             onClick={() => setIsDarkMode(!isDarkMode)}
             title={isDarkMode ? "切换到亮色模式" : "切换到暗色模式"}
+            suppressHydrationWarning
           >
             {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
           </button>
@@ -1435,9 +1612,10 @@ export default function CardGenerator() {
                 type="range"
                 min="50"
                 max="150"
-                value={scale}
+                value={mounted ? scale : 100}
                 onChange={(e) => setScale(Math.min(getMaxScale(), Number(e.target.value)))}
                 className="w-full h-1 bg-slate-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+                suppressHydrationWarning
               />
             </div>
             <button
@@ -1450,6 +1628,15 @@ export default function CardGenerator() {
           </div>
 
           <div className="w-px h-6 bg-gray-200 dark:bg-gray-700 mx-1" />
+          
+          {/* Preview Button */}
+          <button
+            onClick={(e) => { e.stopPropagation(); generatePreview(previewWithBackground); }}
+            className="flex items-center gap-2 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 text-slate-700 dark:text-slate-200 px-4 py-2 rounded-full font-medium text-sm transition-all shadow-md hover:shadow-lg active:scale-95 border border-gray-200 dark:border-gray-600"
+          >
+            <Monitor size={16} />
+            <span className="hidden sm:inline">Preview</span>
+          </button>
 
           {/* Export Action with Resolution Menu */}
           <div className="relative" ref={exportMenuRef}>
@@ -1470,15 +1657,42 @@ export default function CardGenerator() {
             
             {/* Resolution Dropdown Menu */}
             {showExportMenu && !isExporting && (
-              <div className="absolute bottom-full mb-2 right-0 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden min-w-[200px] animate-in fade-in slide-in-from-bottom-2 duration-150">
-                <div className="px-3 py-2 bg-slate-50 dark:bg-gray-900 border-b border-gray-100 dark:border-gray-700">
-                  <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Export Resolution</span>
+              <div className="absolute bottom-full mb-2 right-0 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden min-w-[240px] animate-in fade-in slide-in-from-bottom-2 duration-150">
+                {/* Background Toggle */}
+                <div className="px-3 py-2.5 bg-slate-50 dark:bg-gray-900 border-b border-gray-100 dark:border-gray-700">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-slate-600 dark:text-slate-400">Include Background</span>
+                    <button
+                      onClick={() => setExportWithBackground(!exportWithBackground)}
+                      className={cn(
+                        "relative w-10 h-5 rounded-full transition-colors duration-200 flex-shrink-0",
+                        exportWithBackground 
+                          ? "bg-indigo-500" 
+                          : "bg-slate-300 dark:bg-gray-600"
+                      )}
+                    >
+                      <span 
+                        className={cn(
+                          "absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow-md transition-all duration-200",
+                          exportWithBackground && "translate-x-5"
+                        )}
+                      />
+                    </button>
+                  </div>
+                  <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1">
+                    {exportWithBackground ? "Export with canvas background & pattern" : "Export card only (transparent edges)"}
+                  </p>
+                </div>
+                
+                {/* Resolution Options */}
+                <div className="px-3 py-1.5 bg-slate-50/50 dark:bg-gray-900/50 border-b border-gray-100 dark:border-gray-700">
+                  <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Resolution</span>
                 </div>
                 <div className="py-1">
                   {EXPORT_RESOLUTIONS.map((res) => (
                     <button
                       key={res.name}
-                      onClick={() => handleExport(res.scale)}
+                      onClick={() => handleExport(res.scale, exportWithBackground)}
                       className="w-full px-3 py-2.5 flex items-center justify-between hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors group"
                     >
                       <div className="flex items-center gap-3">
@@ -1487,7 +1701,9 @@ export default function CardGenerator() {
                         </span>
                         <div className="text-left">
                           <div className="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-indigo-700 dark:group-hover:text-indigo-400">{res.label}</div>
-                          <div className="text-[10px] text-slate-400 dark:text-slate-500">{res.size}</div>
+                          <div className="text-[10px] text-slate-400 dark:text-slate-500">
+                            {exportWithBackground ? res.size : '~520×auto'}
+                          </div>
                         </div>
                       </div>
                       <Download size={14} className="text-slate-300 dark:text-slate-600 group-hover:text-indigo-400" />

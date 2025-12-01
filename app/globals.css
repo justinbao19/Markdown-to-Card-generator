@@ -44,20 +44,30 @@
   max-height: 500px;
   height: auto;
   border-radius: 0.5rem;
-  margin: 0.75rem auto;
+  margin: 0.5rem auto;
   display: block;
   object-fit: contain;
 }
 
 .prose .image-wrapper {
   display: block;
-  margin: 0.75rem auto;
+  margin: 0.5rem auto;
   text-align: center;
 }
 
 .prose .image-wrapper img {
   display: inline-block;
   margin: 0 auto;
+}
+
+/* Reduce heading top margin after images in prose */
+.prose img + h1,
+.prose img + h2,
+.prose img + h3,
+.prose .image-wrapper + h1,
+.prose .image-wrapper + h2,
+.prose .image-wrapper + h3 {
+  margin-top: 0.5rem !important;
 }
 
 /* Syntax highlighting colors (VS Code Dark+ theme) */
@@ -102,15 +112,35 @@
 }
 
 .novel-editor-wrapper .ProseMirror h1 {
-  @apply text-2xl font-bold mb-4 dark:text-slate-100;
+  @apply text-2xl font-bold mb-4 mt-4 dark:text-slate-100;
 }
 
 .novel-editor-wrapper .ProseMirror h2 {
-  @apply text-xl font-bold mb-3 dark:text-slate-100;
+  @apply text-xl font-bold mb-3 mt-3 dark:text-slate-100;
 }
 
 .novel-editor-wrapper .ProseMirror h3 {
-  @apply text-lg font-bold mb-2 dark:text-slate-100;
+  @apply text-lg font-bold mb-2 mt-2 dark:text-slate-100;
+}
+
+/* Reduce spacing when heading follows an image */
+.novel-editor-wrapper .ProseMirror img + h1,
+.novel-editor-wrapper .ProseMirror img + h2,
+.novel-editor-wrapper .ProseMirror img + h3,
+.novel-editor-wrapper .ProseMirror [data-type="image"] + h1,
+.novel-editor-wrapper .ProseMirror [data-type="image"] + h2,
+.novel-editor-wrapper .ProseMirror [data-type="image"] + h3,
+.novel-editor-wrapper .ProseMirror .image-wrapper + h1,
+.novel-editor-wrapper .ProseMirror .image-wrapper + h2,
+.novel-editor-wrapper .ProseMirror .image-wrapper + h3 {
+  @apply mt-2;
+}
+
+/* First child headings have no top margin */
+.novel-editor-wrapper .ProseMirror > h1:first-child,
+.novel-editor-wrapper .ProseMirror > h2:first-child,
+.novel-editor-wrapper .ProseMirror > h3:first-child {
+  @apply mt-0;
 }
 
 .novel-editor-wrapper .ProseMirror p {
@@ -188,5 +218,35 @@
 
 .dark ::-webkit-scrollbar-thumb:hover {
   background: #6b7280;
+}
+
+/* Preview Modal Animations - macOS style */
+@keyframes modal-backdrop-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modal-scale-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.95) translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.preview-modal-backdrop {
+  animation: modal-backdrop-fade 0.2s ease-out forwards;
+}
+
+.preview-modal-content {
+  will-change: transform, opacity;
+  animation: modal-scale-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
