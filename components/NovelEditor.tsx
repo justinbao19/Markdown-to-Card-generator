@@ -3,6 +3,7 @@
 import { useEditor, EditorContent, NodeViewWrapper, NodeViewContent, ReactNodeViewRenderer } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import CodeBlockLowlight from "@tiptap/extension-code-block-lowlight";
+import Image from "@tiptap/extension-image";
 import { common, createLowlight } from "lowlight";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { 
@@ -16,6 +17,7 @@ import {
   Heading3,
   Code,
   FileCode,
+  ImageIcon,
   Undo,
   Redo,
   ChevronDown
@@ -328,6 +330,7 @@ export default function NovelEditor({
   className = ""
 }: NovelEditorProps) {
   const [mounted, setMounted] = useState(false);
+  const [, forceUpdate] = useState({});
 
   const editor = useEditor({
     extensions: [
@@ -342,6 +345,10 @@ export default function NovelEditor({
         lowlight,
         defaultLanguage: 'plaintext',
       }),
+      Image.configure({
+        inline: true,
+        allowBase64: true,
+      }),
     ],
     content: markdownToHtml(initialContent),
     immediatelyRender: false,
@@ -355,6 +362,12 @@ export default function NovelEditor({
           .replace(/<ol[^>]*>\s*<\/ol>/gi, '');
         onContentChange(html);
       }
+      // Force toolbar re-render to update button states
+      forceUpdate({});
+    },
+    onSelectionUpdate: () => {
+      // Force toolbar re-render when selection changes
+      forceUpdate({});
     },
     editorProps: {
       attributes: {
@@ -464,6 +477,41 @@ export default function NovelEditor({
         
         <div className="w-px h-5 bg-slate-200 dark:bg-gray-600 mx-1" />
         
+        <label className="cursor-pointer">
+          <input
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                  const base64 = event.target?.result as string;
+                  if (base64 && editor) {
+                    editor.chain().focus().setImage({ src: base64 }).run();
+                  }
+                };
+                reader.readAsDataURL(file);
+              }
+              // Reset input so same file can be selected again
+              e.target.value = '';
+            }}
+          />
+          <div
+            className={`p-1.5 rounded transition-colors inline-flex items-center ${
+              editor.isActive('image')
+                ? 'bg-indigo-100 text-indigo-600' 
+                : 'text-slate-500 hover:bg-slate-100 hover:text-slate-700'
+            }`}
+            title="Upload Image"
+          >
+            <ImageIcon size={16} />
+          </div>
+        </label>
+        
+        <div className="w-px h-5 bg-slate-200 mx-1" />
+        
         <ToolbarButton
           onClick={() => editor.chain().focus().undo().run()}
           disabled={!editor.can().undo()}
@@ -488,6 +536,57 @@ export default function NovelEditor({
       
       {/* Editor Styles */}
       <style jsx global>{`
+        /* Override prose heading margins */
+        .prose h1:first-child,
+        .prose h2:first-child,
+        .prose h3:first-child,
+        .ProseMirror h1:first-child,
+        .ProseMirror h2:first-child,
+        .ProseMirror h3:first-child {
+          margin-top: 0 !important;
+          padding-top: 0 !important;
+        }
+        
+        .ProseMirror h1 {
+          margin-top: 1.5rem !important;
+          margin-bottom: 0.75rem !important;
+        }
+        
+        .ProseMirror h2 {
+          margin-top: 1.25rem !important;
+          margin-bottom: 0.625rem !important;
+        }
+        
+        .ProseMirror h3 {
+          margin-top: 1rem !important;
+          margin-bottom: 0.5rem !important;
+        }
+        
+        /* Also override in card preview */
+        .prose > h1:first-child,
+        .prose > h2:first-child,
+        .prose > h3:first-child {
+          margin-top: 0 !important;
+        }
+        
+        /* Image styling */
+        .ProseMirror img {
+          max-width: 100%;
+          max-height: 400px;
+          height: auto;
+          border-radius: 0.5rem;
+          margin: 0.75rem auto;
+          display: block;
+          cursor: pointer;
+          object-fit: contain;
+        }
+        
+        .ProseMirror img.ProseMirror-selectednode {
+          outline: 2px solid #6366f1;
+          outline-offset: 2px;
+          box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        }
+        
         /* Inline code styling in editor */
         .ProseMirror code:not(pre code) {
           background: #f1f5f9;

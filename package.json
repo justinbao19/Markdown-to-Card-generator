@@ -24,6 +24,7 @@
   },
   "dependencies": {
     "@tiptap/extension-code-block-lowlight": "^3.11.0",
+    "@tiptap/extension-image": "^3.11.1",
     "@tiptap/pm": "^3.11.0",
     "@tiptap/react": "^3.11.0",
     "@tiptap/starter-kit": "^3.11.0",
