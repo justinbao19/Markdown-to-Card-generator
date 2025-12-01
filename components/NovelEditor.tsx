@@ -20,7 +20,8 @@ import {
   ImageIcon,
   Undo,
   Redo,
-  ChevronDown
+  ChevronDown,
+  X
 } from "lucide-react";
 
 // Create lowlight instance with common languages
@@ -58,6 +59,79 @@ interface NovelEditorProps {
   initialContent?: string;
   onContentChange?: (html: string) => void;
   className?: string;
+}
+
+// Custom Image component with resize controls
+function ResizableImageComponent({ node, updateAttributes, deleteNode }: any) {
+  const [isResizing, setIsResizing] = useState(false);
+  const imageRef = useRef<HTMLImageElement>(null);
+  const width = node.attrs.width || '100%';
+
+  const handleResize = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsResizing(true);
+    
+    const startX = e.clientX;
+    const startWidth = imageRef.current?.offsetWidth || 300;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const diff = e.clientX - startX;
+      const newWidth = Math.max(100, Math.min(600, startWidth + diff));
+      updateAttributes({ width: `${newWidth}px` });
+    };
+
+    const handleMouseUp = () => {
+      setIsResizing(false);
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  }, [updateAttributes]);
+
+  const handleDelete = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    deleteNode();
+  }, [deleteNode]);
+
+  return (
+    <NodeViewWrapper className="image-wrapper relative inline-block my-2 group">
+      <img
+        ref={imageRef}
+        src={node.attrs.src}
+        alt={node.attrs.alt || ''}
+        style={{ width: width, maxWidth: '100%' }}
+        className="rounded-lg block"
+      />
+      {/* Hover border */}
+      <div className="absolute inset-0 border-2 border-transparent group-hover:border-indigo-400 rounded-lg pointer-events-none transition-colors" />
+      
+      {/* Delete button (top-left) */}
+      <button
+        className="absolute top-2 left-2 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+        style={{ pointerEvents: 'auto' }}
+        onClick={handleDelete}
+        contentEditable={false}
+        title="Delete image"
+      >
+        <X size={14} />
+      </button>
+      
+      {/* Right resize handle */}
+      <div
+        className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-12 bg-indigo-500 rounded-l-md cursor-ew-resize opacity-0 group-hover:opacity-100 transition-opacity"
+        style={{ pointerEvents: 'auto' }}
+        onMouseDown={handleResize}
+      />
+      
+      {/* Width indicator */}
+      <div className="absolute bottom-2 right-2 bg-black/70 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+        {width}
+      </div>
+    </NodeViewWrapper>
+  );
 }
 
 // Custom Code Block component with language selector
@@ -345,8 +419,27 @@ export default function NovelEditor({
         lowlight,
         defaultLanguage: 'plaintext',
       }),
-      Image.configure({
-        inline: true,
+      Image.extend({
+        addAttributes() {
+          return {
+            ...this.parent?.(),
+            width: {
+              default: null,
+              parseHTML: element => element.getAttribute('width'),
+              renderHTML: attributes => {
+                if (!attributes.width) {
+                  return {};
+                }
+                return { width: attributes.width };
+              },
+            },
+          };
+        },
+        addNodeView() {
+          return ReactNodeViewRenderer(ResizableImageComponent);
+        },
+      }).configure({
+        inline: false,
         allowBase64: true,
       }),
     ],
@@ -569,22 +662,25 @@ export default function NovelEditor({
           margin-top: 0 !important;
         }
         
-        /* Image styling */
-        .ProseMirror img {
+        /* Image wrapper and styling */
+        .image-wrapper {
           max-width: 100%;
-          max-height: 400px;
-          height: auto;
-          border-radius: 0.5rem;
           margin: 0.75rem auto;
-          display: block;
-          cursor: pointer;
+        }
+        
+        .image-wrapper img {
+          max-width: 100%;
+          max-height: 500px;
+          height: auto;
           object-fit: contain;
         }
         
-        .ProseMirror img.ProseMirror-selectednode {
-          outline: 2px solid #6366f1;
-          outline-offset: 2px;
-          box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        .ProseMirror .image-wrapper.ProseMirror-selectednode {
+          outline: none;
+        }
+        
+        .ProseMirror .image-wrapper.ProseMirror-selectednode > div:first-child {
+          border-color: #6366f1 !important;
         }
         
         /* Inline code styling in editor */
