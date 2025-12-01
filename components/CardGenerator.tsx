@@ -48,7 +48,54 @@ import {
   PenLine,
   PilcrowSquare,
   Moon,
-  Sun
+  Sun,
+  // Additional icons for brand symbols
+  BookOpen,
+  Newspaper,
+  Bell,
+  Calendar,
+  CheckCircle,
+  AlertCircle,
+  Lightbulb,
+  Target,
+  TrendingUp,
+  Shield,
+  Megaphone,
+  Bookmark,
+  Clock,
+  Tag,
+  GitBranch,
+  GitCommit,
+  Send,
+  MessageSquare,
+  Users,
+  Award,
+  Coffee,
+  Music,
+  Pen,
+  Camera,
+  Video,
+  Mic,
+  Headphones,
+  Wifi,
+  Battery,
+  Compass,
+  Map,
+  Navigation,
+  Truck,
+  Package,
+  ShoppingCart,
+  CreditCard as CardIcon,
+  DollarSign,
+  Percent,
+  PieChart,
+  BarChart,
+  Activity,
+  Hexagon,
+  Triangle,
+  Pentagon,
+  Octagon,
+  Diamond
 } from "lucide-react";
 import dynamic from "next/dynamic";
 import { common, createLowlight } from "lowlight";
@@ -235,25 +282,88 @@ function htmlToMarkdown(html: string): string {
 
 // --- Constants ---
 const SYMBOLS = {
+  // Popular & General
   sparkles: { icon: Sparkles },
   zap: { icon: Zap },
   star: { icon: Star },
   heart: { icon: Heart },
-  globe: { icon: Globe },
-  code: { icon: Code },
-  feather: { icon: Feather },
   rocket: { icon: Rocket },
+  lightbulb: { icon: Lightbulb },
+  target: { icon: Target },
+  award: { icon: Award },
+  
+  // Content & Docs
+  filetext: { icon: FileText },
+  bookopen: { icon: BookOpen },
+  newspaper: { icon: Newspaper },
+  pen: { icon: Pen },
+  feather: { icon: Feather },
+  bookmark: { icon: Bookmark },
+  tag: { icon: Tag },
+  
+  // Changelog & Updates
+  bell: { icon: Bell },
+  megaphone: { icon: Megaphone },
+  clock: { icon: Clock },
+  calendar: { icon: Calendar },
+  trendingup: { icon: TrendingUp },
+  activity: { icon: Activity },
+  
+  // Status & Feedback
+  checkcircle: { icon: CheckCircle },
+  alertcircle: { icon: AlertCircle },
+  shield: { icon: Shield },
+  
+  // Dev & Tech
+  code: { icon: Code },
+  gitbranch: { icon: GitBranch },
+  gitcommit: { icon: GitCommit },
+  command: { icon: Command },
+  cpu: { icon: Cpu },
+  cloud: { icon: Cloud },
+  
+  // Communication
+  send: { icon: Send },
+  messagesquare: { icon: MessageSquare },
+  users: { icon: Users },
+  globe: { icon: Globe },
+  
+  // Media
+  camera: { icon: Camera },
+  video: { icon: Video },
+  mic: { icon: Mic },
+  headphones: { icon: Headphones },
+  music: { icon: Music },
+  
+  // Business
+  package: { icon: Package },
+  shoppingcart: { icon: ShoppingCart },
+  dollarsign: { icon: DollarSign },
+  piechart: { icon: PieChart },
+  barchart: { icon: BarChart },
+  
+  // Navigation
+  compass: { icon: Compass },
+  map: { icon: Map },
+  navigation: { icon: Navigation },
+  
+  // Fun & Misc
   smile: { icon: Smile },
   ghost: { icon: Ghost },
   flame: { icon: Flame },
+  coffee: { icon: Coffee },
   droplets: { icon: Droplets },
-  command: { icon: Command },
-  apple: { icon: Apple },
+  
+  // Shapes
   circle: { icon: Circle },
+  hexagon: { icon: Hexagon },
+  diamond: { icon: Diamond },
+  triangle: { icon: Triangle },
   box: { icon: Box },
   layers: { icon: Layers },
-  cloud: { icon: Cloud },
-  cpu: { icon: Cpu },
+  
+  // Brands
+  apple: { icon: Apple },
   hash: { icon: Hash }
 };
 
@@ -385,6 +495,13 @@ const SIZES = {
   xl: { name: "X-Large", class: "prose-xl" }
 };
 
+const LINE_HEIGHTS = {
+  tight: { name: "Tight", value: "1.4" },
+  normal: { name: "Normal", value: "1.6" },
+  relaxed: { name: "Relaxed", value: "1.8" },
+  loose: { name: "Loose", value: "2.0" }
+};
+
 const DEFAULT_MARKDOWN = `# The Art of Code
 
 **Simplicity** is the ultimate sophistication.
@@ -408,6 +525,7 @@ export default function CardGenerator() {
   const [theme, setTheme] = useState<keyof typeof THEMES>('minimal');
   const [font, setFont] = useState<keyof typeof FONTS>('sans');
   const [fontSize, setFontSize] = useState<keyof typeof SIZES>('lg');
+  const [lineHeight, setLineHeight] = useState<keyof typeof LINE_HEIGHTS>('normal');
   const [decoration, setDecoration] = useState<keyof typeof DECORATIONS>('macos');
   const [pattern, setPattern] = useState<keyof typeof PATTERNS>('dots');
   const [scale, setScale] = useState(100);
@@ -441,6 +559,7 @@ export default function CardGenerator() {
       if (exportMenuRef.current && !exportMenuRef.current.contains(event.target as Node)) {
         setShowExportMenu(false);
       }
+      // Icon picker is handled via its own backdrop click handler
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -451,6 +570,7 @@ export default function CardGenerator() {
   const [footerIcon, setFooterIcon] = useState<keyof typeof SYMBOLS>('sparkles');
   const [isMobileEditing, setIsMobileEditing] = useState(false);
   const [showMobileInfo, setShowMobileInfo] = useState(false);
+  const [showIconPicker, setShowIconPicker] = useState(false);
   const [editorHeight, setEditorHeight] = useState(55); // percentage
   const [isResizingEditor, setIsResizingEditor] = useState(false);
 
@@ -1236,6 +1356,25 @@ export default function CardGenerator() {
                     ))}
                   </div>
                 </div>
+
+                {/* Line Height */}
+                <div className="space-y-1.5 w-full">
+                  <label className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">Line Height</label>
+                  <div className="flex bg-gray-200/50 dark:bg-gray-800 p-1 rounded-lg w-full">
+                    {(Object.keys(LINE_HEIGHTS) as Array<keyof typeof LINE_HEIGHTS>).map((lh) => (
+                      <button
+                        key={lh}
+                        onClick={() => setLineHeight(lh)}
+                        className={cn(
+                          "flex-1 py-2 lg:py-1.5 text-[10px] font-medium rounded-md transition-all",
+                          lineHeight === lh ? "bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-400 shadow-sm" : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"
+                        )}
+                      >
+                        {LINE_HEIGHTS[lh].value}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -1245,13 +1384,27 @@ export default function CardGenerator() {
                 <Layout size={12} /> Appearance
               </div>
 
-                {/* Footer Text Input */}
-                <div className="space-y-1.5">
+                {/* Footer Text Input with Icon Picker */}
+                <div className="space-y-1.5 relative">
                   <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">Footer Text</span>
                   <div className="flex items-center gap-2 p-2 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-                     <div className="p-1.5 bg-gray-100 dark:bg-gray-700 text-slate-500 dark:text-slate-400 rounded-md">
-                        <CreditCard size={14} />
-                     </div>
+                     {/* Clickable Icon - Opens Picker */}
+                     <button
+                       onClick={() => setShowIconPicker(!showIconPicker)}
+                       className={cn(
+                         "p-2 rounded-lg transition-all flex-shrink-0",
+                         showIconPicker 
+                           ? "bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400" 
+                           : "bg-gray-100 dark:bg-gray-700 text-slate-500 dark:text-slate-400 hover:bg-gray-200 dark:hover:bg-gray-600"
+                       )}
+                       title="Choose icon"
+                     >
+                       {(() => {
+                         const IconComponent = SYMBOLS[footerIcon].icon;
+                         return <IconComponent size={16} />;
+                       })()}
+                     </button>
+                     
                      <input 
                         type="text"
                         value={footerText}
@@ -1260,32 +1413,49 @@ export default function CardGenerator() {
                         placeholder="Footer text..."
                      />
                   </div>
-                </div>
-
-                {/* Symbol Selector */}
-                <div className="space-y-1.5">
-                  <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">Brand Symbol</span>
-                  <div className="flex flex-wrap gap-1.5 p-2 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-                    {(Object.keys(SYMBOLS) as Array<keyof typeof SYMBOLS>).map((s) => {
-                      const IconComponent = SYMBOLS[s].icon;
-                      return (
+                  
+                  {/* Desktop Icon Picker - Positioned below Footer Text */}
+                  {showIconPicker && (
+                    <div 
+                      className="hidden lg:block absolute top-full left-0 right-0 mt-2 z-50 bg-white dark:bg-gray-800 shadow-lg border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <div className="px-3 py-2 bg-slate-50/80 dark:bg-gray-900/80 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
+                        <span className="text-[10px] font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wide">Select Icon</span>
                         <button 
-                          key={s}
-                          onClick={() => setFooterIcon(s)}
-                          className={cn(
-                            "p-1.5 rounded-md transition-all",
-                            footerIcon === s 
-                              ? "bg-indigo-50 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 shadow-sm" 
-                              : "text-slate-400 dark:text-slate-500 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-slate-600 dark:hover:text-slate-300"
-                          )}
-                          title={s}
+                          onClick={() => setShowIconPicker(false)}
+                          className="p-1 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 text-slate-400"
                         >
-                          <IconComponent size={14} />
+                          <X size={14} />
                         </button>
-                      )
-                    })}
-                  </div>
+                      </div>
+                      <div className="overflow-y-auto max-h-[120px] p-2 grid grid-cols-10 gap-1">
+                        {(Object.keys(SYMBOLS) as Array<keyof typeof SYMBOLS>).map((s) => {
+                          const IconComponent = SYMBOLS[s].icon;
+                          return (
+                            <button 
+                              key={s}
+                              onClick={() => {
+                                setFooterIcon(s);
+                                setShowIconPicker(false);
+                              }}
+                              className={cn(
+                                "p-1.5 rounded-md transition-all flex items-center justify-center",
+                                footerIcon === s 
+                                  ? "bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 ring-2 ring-indigo-500" 
+                                  : "text-slate-400 dark:text-slate-500 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-slate-600"
+                              )}
+                              title={s}
+                            >
+                              <IconComponent size={14} />
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
+                
 
                 {/* Window Decoration Selector */}
                 <div className="space-y-1.5">
@@ -1565,7 +1735,9 @@ export default function CardGenerator() {
                   // Dynamic Styles
                   THEMES[theme].text,
                   SIZES[fontSize].class
-                )}>
+                )}
+                style={{ lineHeight: LINE_HEIGHTS[lineHeight].value }}
+                >
                   {editorMode === 'markdown' ? (
                     <ReactMarkdown>{content || "Type something..."}</ReactMarkdown>
                   ) : (
@@ -1574,7 +1746,7 @@ export default function CardGenerator() {
                 </div>
 
                 {/* Footer */}
-                <div className="mt-12 pt-6 border-t border-black/5 flex items-center justify-between opacity-30 select-none">
+                <div className="mt-6 pt-4 border-t border-black/5 flex items-center justify-between opacity-30 select-none">
                    <div className="flex items-center gap-1.5">
                      {/* Dynamic Symbol */}
                      {(() => {
@@ -1716,6 +1888,60 @@ export default function CardGenerator() {
         </div>
 
       </div>
+
+      {/* Mobile Icon Picker Modal - Bottom Sheet */}
+      {showIconPicker && (
+        <>
+          {/* Backdrop - only on mobile */}
+          <div 
+            className="lg:hidden fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm"
+            onClick={() => setShowIconPicker(false)}
+          />
+          
+          {/* Mobile: Bottom Sheet */}
+          <div 
+            className={cn(
+              "lg:hidden fixed bottom-0 left-0 right-0 z-[101] bg-white dark:bg-gray-800 shadow-2xl border-t border-gray-200 dark:border-gray-700",
+              "max-h-[60vh] rounded-t-2xl",
+              "animate-in slide-in-from-bottom duration-200"
+            )}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="px-4 py-3 bg-slate-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 rounded-t-2xl flex items-center justify-between">
+              <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">Choose Icon</span>
+              <button 
+                onClick={() => setShowIconPicker(false)}
+                className="p-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 text-slate-500"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <div className="overflow-y-auto max-h-[calc(60vh-52px)] p-3 grid grid-cols-7 gap-2">
+              {(Object.keys(SYMBOLS) as Array<keyof typeof SYMBOLS>).map((s) => {
+                const IconComponent = SYMBOLS[s].icon;
+                return (
+                  <button 
+                    key={s}
+                    onClick={() => {
+                      setFooterIcon(s);
+                      setShowIconPicker(false);
+                    }}
+                    className={cn(
+                      "p-3 rounded-xl transition-all flex items-center justify-center",
+                      footerIcon === s 
+                        ? "bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 ring-2 ring-indigo-500" 
+                        : "text-slate-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+                    )}
+                    title={s}
+                  >
+                    <IconComponent size={20} />
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        </>
+      )}
 
     </div>
   );
