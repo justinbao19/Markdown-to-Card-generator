@@ -80,7 +80,7 @@ import {
   Wifi,
   Battery,
   Compass,
-  Map,
+  Map as MapIcon,
   Navigation,
   Truck,
   Package,
@@ -117,13 +117,30 @@ function cn(...inputs: ClassValue[]) {
 }
 
 // Apply syntax highlighting to code blocks in HTML content
-function highlightCodeBlocks(html: string): string {
+function highlightCodeBlocks(html: string, imageMap?: Map<string, string>): string {
   if (!html) return html;
+  
+  // First, resolve image IDs to actual URLs
+  let processedHtml = html;
+  if (imageMap) {
+    processedHtml = processedHtml.replace(/<img([^>]*)src=["'](__IMG_\d+__)["']([^>]*)>/gi, (match, before, imgId, after) => {
+      const actualSrc = imageMap.get(imgId);
+      if (actualSrc) {
+        return `<img${before}src="${actualSrc}"${after}>`;
+      }
+      return ''; // Remove if not found in map
+    });
+  }
+  
+  // Clean up img tags with empty or missing src to prevent React warnings
+  let cleanedHtml = processedHtml
+    .replace(/<img[^>]*src=["']["'][^>]*\/?>/gi, '') // Remove img with empty src=""
+    .replace(/<img(?![^>]*src=)[^>]*\/?>/gi, '');    // Remove img without src attribute
   
   // Match <pre><code class="language-xxx">...</code></pre> patterns
   const codeBlockRegex = /<pre><code(?:\s+class="language-(\w+)")?>([\s\S]*?)<\/code><\/pre>/gi;
   
-  return html.replace(codeBlockRegex, (match, language, code) => {
+  return cleanedHtml.replace(codeBlockRegex, (match, language, code) => {
     const lang = language || 'plaintext';
     
     // Decode HTML entities
@@ -166,11 +183,42 @@ function highlightCodeBlocks(html: string): string {
 }
 
 // Convert markdown to HTML for Visual mode
-function markdownToHtml(markdown: string): string {
+// imageMap is used to restore full URLs for long/base64 images
+function markdownToHtml(markdown: string, imageMap?: Map<string, string>): string {
   if (!markdown) return "<p></p>";
   if (markdown.trim().startsWith("<")) return markdown;
   
-  let html = markdown
+  // Remove image URL comments (added for readability in markdown)
+  let cleaned = markdown.replace(/<!-- Image URL: .+? -->\n?/g, '');
+  
+  // First, handle standalone image lines (before other processing)
+  // Match ![alt](url) on its own line - preserve them as special markers
+  let processed = cleaned.replace(/^!\[([^\]]*)\]\((.+)\)$/gm, (_, alt, src) => {
+    let actualSrc = src;
+    // Check if this is an image ID that needs to be resolved
+    if (src && src.startsWith('__IMG_') && src.endsWith('__') && imageMap) {
+      actualSrc = imageMap.get(src) || src;
+    }
+    if (actualSrc && actualSrc.trim()) {
+      return `<img src="${actualSrc}" alt="${alt || ''}" />`;
+    }
+    return '';
+  });
+  
+  // Handle inline images
+  processed = processed.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (_, alt, src) => {
+    let actualSrc = src;
+    // Check if this is an image ID that needs to be resolved
+    if (src && src.startsWith('__IMG_') && src.endsWith('__') && imageMap) {
+      actualSrc = imageMap.get(src) || src;
+    }
+    if (actualSrc && actualSrc.trim()) {
+      return `<img src="${actualSrc}" alt="${alt || ''}" />`;
+    }
+    return '';
+  });
+  
+  let html = processed
     .replace(/^### (.*$)/gm, '<h3>$1</h3>')
     .replace(/^## (.*$)/gm, '<h2>$1</h2>')
     .replace(/^# (.*$)/gm, '<h1>$1</h1>')
@@ -190,7 +238,8 @@ function markdownToHtml(markdown: string): string {
     const trimmed = line.trim();
     if (!trimmed) continue;
     if (trimmed.startsWith('<h') || trimmed.startsWith('<blockquote') || 
-        trimmed.startsWith('<ul') || trimmed.startsWith('<li') || trimmed.startsWith('<p')) {
+        trimmed.startsWith('<ul') || trimmed.startsWith('<li') || trimmed.startsWith('<p') ||
+        trimmed.startsWith('<img')) {
       result.push(trimmed);
     } else {
       result.push(`<p>${trimmed}</p>`);
@@ -200,8 +249,16 @@ function markdownToHtml(markdown: string): string {
   return result.join('') || "<p></p>";
 }
 
+// Image URL length threshold for truncation in Markdown display
+const IMAGE_URL_MAX_LENGTH = 80;
+
 // Convert HTML back to Markdown for Markdown mode
-function htmlToMarkdown(html: string): string {
+// imageMap is used to store full URLs for long/base64 images
+function htmlToMarkdown(
+  html: string, 
+  imageMap?: Map<string, string>,
+  imageCounter?: { current: number }
+): string {
   if (!html) return "";
   // If it doesn't look like HTML, return as-is
   if (!html.trim().startsWith("<")) return html;
@@ -215,7 +272,50 @@ function htmlToMarkdown(html: string): string {
     // Remove li with only whitespace
     .replace(/<li[^>]*>[\s\n\r]*<\/li>/gi, '');
   
+  // Process images first with a more robust approach
   let markdown = cleanHtml
+    // Images - use a function to handle complex img tags
+    .replace(/<img[^>]*>/gi, (imgTag) => {
+      // Extract src attribute
+      const srcMatch = imgTag.match(/src=["']([^"']+)["']/i);
+      const altMatch = imgTag.match(/alt=["']([^"']*)["']/i);
+      
+      const src = srcMatch ? srcMatch[1] : '';
+      const alt = altMatch ? altMatch[1] : '';
+      
+      // Only output if we have a valid src
+      if (src) {
+        // For long URLs (especially base64), store in map and use short ID
+        if (src.length > IMAGE_URL_MAX_LENGTH && imageMap && imageCounter) {
+          const imageId = `__IMG_${imageCounter.current++}__`;
+          imageMap.set(imageId, src);
+          // Show truncated preview in markdown
+          const preview = src.substring(0, 50) + '...' + (src.startsWith('data:') ? '[base64]' : '');
+          return `![${alt}](${imageId})\n<!-- Image URL: ${preview} -->\n\n`;
+        }
+        return `![${alt}](${src})\n\n`;
+      }
+      return '';
+    })
+    // Code blocks - handle before inline code
+    .replace(/<pre[^>]*><code[^>]*class=["']language-(\w+)["'][^>]*>([\s\S]*?)<\/code><\/pre>/gi, (_, lang, code) => {
+      const decodedCode = code
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&amp;/g, '&')
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'");
+      return `\`\`\`${lang}\n${decodedCode}\n\`\`\`\n\n`;
+    })
+    .replace(/<pre[^>]*><code[^>]*>([\s\S]*?)<\/code><\/pre>/gi, (_, code) => {
+      const decodedCode = code
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&amp;/g, '&')
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'");
+      return `\`\`\`\n${decodedCode}\n\`\`\`\n\n`;
+    })
     // Headers
     .replace(/<h1[^>]*>(.*?)<\/h1>/gi, '# $1\n\n')
     .replace(/<h2[^>]*>(.*?)<\/h2>/gi, '## $1\n\n')
@@ -262,13 +362,13 @@ function htmlToMarkdown(html: string): string {
       }
       return listItems.length > 0 ? listItems.join('\n') + '\n\n' : '';
     })
-    // Code
+    // Inline code (after code blocks to avoid conflicts)
     .replace(/<code[^>]*>(.*?)<\/code>/gi, '`$1`')
     // Paragraphs
     .replace(/<p[^>]*>(.*?)<\/p>/gi, '$1\n\n')
     // Line breaks
     .replace(/<br\s*\/?>/gi, '\n')
-    // Remove remaining tags
+    // Remove remaining tags (like div wrappers from image components)
     .replace(/<[^>]+>/g, '')
     // Clean up empty bullet points that might have slipped through
     .replace(/^\*\s*$/gm, '')
@@ -344,7 +444,7 @@ const SYMBOLS = {
   
   // Navigation
   compass: { icon: Compass },
-  map: { icon: Map },
+  map: { icon: MapIcon },
   navigation: { icon: Navigation },
   
   // Fun & Misc
@@ -522,6 +622,9 @@ export default function CardGenerator() {
   // State
   const [content, setContent] = useState(DEFAULT_MARKDOWN);
   const [editorMode, setEditorMode] = useState<'markdown' | 'wysiwyg'>('markdown');
+  const [editorKey, setEditorKey] = useState(0); // Used to force re-mount NovelEditor when switching modes
+  const imageMapRef = useRef<Map<string, string>>(new Map()); // Map of image IDs to full URLs
+  const imageCounterRef = useRef(0); // Counter for generating unique image IDs
   const [theme, setTheme] = useState<keyof typeof THEMES>('minimal');
   const [font, setFont] = useState<keyof typeof FONTS>('sans');
   const [fontSize, setFontSize] = useState<keyof typeof SIZES>('lg');
@@ -1023,7 +1126,7 @@ export default function CardGenerator() {
               <button
                 onClick={() => {
                   if (editorMode === 'wysiwyg' && content.trim().startsWith('<')) {
-                    setContent(htmlToMarkdown(content));
+                    setContent(htmlToMarkdown(content, imageMapRef.current, imageCounterRef));
                   }
                   setEditorMode('markdown');
                 }}
@@ -1040,8 +1143,9 @@ export default function CardGenerator() {
               <button
                 onClick={() => {
                   if (editorMode === 'markdown' && !content.trim().startsWith('<')) {
-                    setContent(markdownToHtml(content));
+                    setContent(markdownToHtml(content, imageMapRef.current));
                   }
+                  setEditorKey(k => k + 1); // Force re-mount NovelEditor
                   setEditorMode('wysiwyg');
                 }}
                 className={cn(
@@ -1086,6 +1190,7 @@ export default function CardGenerator() {
           ) : (
             <div className="flex-1 overflow-y-auto">
               <NovelEditor
+                key={`editor-mobile-${editorKey}`}
                 initialContent={content}
                 onContentChange={(html) => setContent(html)}
                 className="h-full"
@@ -1191,7 +1296,7 @@ export default function CardGenerator() {
                 onClick={() => {
                   // Convert HTML back to Markdown when switching to Markdown mode
                   if (editorMode === 'wysiwyg' && content.trim().startsWith('<')) {
-                    setContent(htmlToMarkdown(content));
+                    setContent(htmlToMarkdown(content, imageMapRef.current, imageCounterRef));
                   }
                   setEditorMode('markdown');
                 }}
@@ -1210,8 +1315,9 @@ export default function CardGenerator() {
                 onClick={() => {
                   // Convert markdown to HTML when switching to Visual mode
                   if (editorMode === 'markdown' && !content.trim().startsWith('<')) {
-                    setContent(markdownToHtml(content));
+                    setContent(markdownToHtml(content, imageMapRef.current));
                   }
+                  setEditorKey(k => k + 1); // Force re-mount NovelEditor
                   setEditorMode('wysiwyg');
                 }}
                 className={cn(
@@ -1243,6 +1349,7 @@ export default function CardGenerator() {
           {editorMode === 'wysiwyg' && (
             <div className="flex-1 overflow-y-auto">
               <NovelEditor
+                key={`editor-desktop-${editorKey}`}
                 initialContent={content}
                 onContentChange={(html) => setContent(html)}
                 className="h-full"
@@ -1791,9 +1898,27 @@ export default function CardGenerator() {
                 style={{ lineHeight: LINE_HEIGHTS[lineHeight].value }}
                 >
                   {editorMode === 'markdown' ? (
-                    <ReactMarkdown>{content || "Type something..."}</ReactMarkdown>
+                    <ReactMarkdown
+                      components={{
+                        // Custom image component to handle empty src and image IDs
+                        img: ({ src, alt, ...props }) => {
+                          // Don't render if src is empty
+                          if (!src || src.trim() === '') return null;
+                          // Resolve image ID from map if needed
+                          let actualSrc = src;
+                          if (src.startsWith('__IMG_') && src.endsWith('__')) {
+                            actualSrc = imageMapRef.current.get(src) || src;
+                          }
+                          // Don't render if still invalid
+                          if (!actualSrc || actualSrc.startsWith('__IMG_')) return null;
+                          return <img src={actualSrc} alt={alt || ''} {...props} />;
+                        }
+                      }}
+                    >
+                      {content || "Type something..."}
+                    </ReactMarkdown>
                   ) : (
-                    <div dangerouslySetInnerHTML={{ __html: highlightCodeBlocks(content) || "<p>Type something...</p>" }} />
+                    <div dangerouslySetInnerHTML={{ __html: highlightCodeBlocks(content, imageMapRef.current) || "<p>Type something...</p>" }} />
                   )}
                 </div>
 

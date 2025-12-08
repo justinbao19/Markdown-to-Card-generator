@@ -224,7 +224,12 @@ function markdownToHtml(markdown: string): string {
   const lines = markdown.split('\n');
   const result: string[] = [];
   let inList = false;
+  let inOrderedList = false;
   let listItems: string[] = [];
+  let orderedListItems: string[] = [];
+  let inCodeBlock = false;
+  let codeBlockLanguage = '';
+  let codeBlockContent: string[] = [];
   
   const flushList = () => {
     if (listItems.length > 0) {
@@ -234,28 +239,74 @@ function markdownToHtml(markdown: string): string {
     inList = false;
   };
   
-  for (const line of lines) {
+  const flushOrderedList = () => {
+    if (orderedListItems.length > 0) {
+      result.push(`<ol>${orderedListItems.map(item => `<li><p>${item}</p></li>`).join('')}</ol>`);
+      orderedListItems = [];
+    }
+    inOrderedList = false;
+  };
+  
+  const flushCodeBlock = () => {
+    if (codeBlockContent.length > 0) {
+      const code = codeBlockContent.join('\n')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+      result.push(`<pre><code class="language-${codeBlockLanguage || 'plaintext'}">${code}</code></pre>`);
+      codeBlockContent = [];
+    }
+    inCodeBlock = false;
+    codeBlockLanguage = '';
+  };
+  
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
     const trimmed = line.trim();
+    
+    // Code block handling
+    if (trimmed.startsWith('```')) {
+      if (inCodeBlock) {
+        // End of code block
+        flushCodeBlock();
+      } else {
+        // Start of code block
+        if (inList) flushList();
+        if (inOrderedList) flushOrderedList();
+        inCodeBlock = true;
+        codeBlockLanguage = trimmed.slice(3).trim();
+      }
+      continue;
+    }
+    
+    if (inCodeBlock) {
+      codeBlockContent.push(line);
+      continue;
+    }
     
     // Skip empty lines but flush list if we were in one
     if (!trimmed) {
       if (inList) flushList();
+      if (inOrderedList) flushOrderedList();
       continue;
     }
     
     // Headers
     if (trimmed.startsWith('### ')) {
       if (inList) flushList();
+      if (inOrderedList) flushOrderedList();
       result.push(`<h3>${processInline(trimmed.slice(4))}</h3>`);
       continue;
     }
     if (trimmed.startsWith('## ')) {
       if (inList) flushList();
+      if (inOrderedList) flushOrderedList();
       result.push(`<h2>${processInline(trimmed.slice(3))}</h2>`);
       continue;
     }
     if (trimmed.startsWith('# ')) {
       if (inList) flushList();
+      if (inOrderedList) flushOrderedList();
       result.push(`<h1>${processInline(trimmed.slice(2))}</h1>`);
       continue;
     }
@@ -263,13 +314,27 @@ function markdownToHtml(markdown: string): string {
     // Blockquote
     if (trimmed.startsWith('> ')) {
       if (inList) flushList();
+      if (inOrderedList) flushOrderedList();
       result.push(`<blockquote><p>${processInline(trimmed.slice(2))}</p></blockquote>`);
       continue;
     }
     
-    // List items (handle various spacing: *, - with any number of spaces)
+    // Ordered list items (1. 2. 3. etc)
+    const orderedListMatch = trimmed.match(/^\d+\.\s+(.*)$/);
+    if (orderedListMatch) {
+      if (inList) flushList();
+      inOrderedList = true;
+      const content = orderedListMatch[1].trim();
+      if (content) {
+        orderedListItems.push(processInline(content));
+      }
+      continue;
+    }
+    
+    // Unordered list items (handle various spacing: *, - with any number of spaces)
     const listMatch = trimmed.match(/^[\*\-]\s+(.*)$/);
     if (listMatch) {
+      if (inOrderedList) flushOrderedList();
       inList = true;
       const content = listMatch[1].trim();
       if (content) { // Only add non-empty list items
@@ -278,22 +343,70 @@ function markdownToHtml(markdown: string): string {
       continue;
     }
     
+    // Standalone image line - handle before regular paragraph
+    // Match ![alt](url) where url can contain any characters until the final )
+    const imageMatch = trimmed.match(/^!\[([^\]]*)\]\((.+)\)$/);
+    if (imageMatch) {
+      if (inList) flushList();
+      if (inOrderedList) flushOrderedList();
+      const alt = imageMatch[1] || '';
+      const src = imageMatch[2] || '';
+      if (src) {
+        result.push(`<img src="${src}" alt="${alt}" />`);
+      }
+      continue;
+    }
+    
     // Regular paragraph
     if (inList) flushList();
+    if (inOrderedList) flushOrderedList();
     result.push(`<p>${processInline(trimmed)}</p>`);
   }
   
-  // Flush any remaining list
+  // Flush any remaining lists or code blocks
   if (inList) flushList();
+  if (inOrderedList) flushOrderedList();
+  if (inCodeBlock) flushCodeBlock();
   
   return result.join('') || "<p></p>";
 }
 
+// Check if text looks like Markdown
+function looksLikeMarkdown(text: string): boolean {
+  const markdownPatterns = [
+    /^#{1,6}\s+/m,           // Headers
+    /\*\*[^*]+\*\*/,         // Bold
+    /\*[^*]+\*/,             // Italic
+    /^>\s+/m,                // Blockquote
+    /^[\*\-]\s+/m,           // Unordered list
+    /^\d+\.\s+/m,            // Ordered list
+    /`[^`]+`/,               // Inline code
+    /^```/m,                 // Code block
+    /\[.+\]\(.+\)/,          // Links
+  ];
+  
+  return markdownPatterns.some(pattern => pattern.test(text));
+}
+
 // Process inline markdown (bold, italic, code)
 function processInline(text: string): string {
-  return text
+  // Handle images first - use a function to properly handle base64 and complex URLs
+  let result = text.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (_, alt, src) => {
+    // Only create img tag if src is not empty
+    if (src && src.trim()) {
+      return `<img src="${src}" alt="${alt || ''}" />`;
+    }
+    return '';
+  });
+  
+  return result
+    // Links: [text](url)
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')
+    // Bold
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    // Italic
     .replace(/\*(.*?)\*/g, '<em>$1</em>')
+    // Inline code
     .replace(/`([^`]+)`/g, '<code>$1</code>');
 }
 
@@ -465,6 +578,23 @@ export default function NovelEditor({
     editorProps: {
       attributes: {
         class: 'prose prose-sm max-w-none focus:outline-none min-h-[150px] p-4 text-slate-600 dark:text-slate-300',
+      },
+      handlePaste: (view, event, slice) => {
+        const clipboardData = event.clipboardData;
+        if (!clipboardData) return false;
+        
+        const text = clipboardData.getData('text/plain');
+        const html = clipboardData.getData('text/html');
+        
+        // If there's no HTML content and the text looks like Markdown, convert it
+        if (text && !html && looksLikeMarkdown(text)) {
+          event.preventDefault();
+          const convertedHtml = markdownToHtml(text);
+          editor?.commands.insertContent(convertedHtml);
+          return true;
+        }
+        
+        return false;
       },
     },
   });
