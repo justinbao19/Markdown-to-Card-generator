@@ -621,7 +621,7 @@ export default function CardGenerator() {
   
   // State
   const [content, setContent] = useState(DEFAULT_MARKDOWN);
-  const [editorMode, setEditorMode] = useState<'markdown' | 'wysiwyg'>('markdown');
+  const [editorMode, setEditorMode] = useState<'markdown' | 'wysiwyg'>('wysiwyg');
   const [editorKey, setEditorKey] = useState(0); // Used to force re-mount NovelEditor when switching modes
   const imageMapRef = useRef<Map<string, string>>(new Map()); // Map of image IDs to full URLs
   const imageCounterRef = useRef(0); // Counter for generating unique image IDs
@@ -655,6 +655,14 @@ export default function CardGenerator() {
     { name: '3x', scale: 3, label: 'High DPI', size: '~1560×auto' },
     { name: '4x', scale: 4, label: 'Ultra HD', size: '~2080×auto' },
   ];
+
+  // Initialize content as HTML when starting in wysiwyg mode
+  useEffect(() => {
+    if (editorMode === 'wysiwyg' && content === DEFAULT_MARKDOWN) {
+      setContent(markdownToHtml(DEFAULT_MARKDOWN, imageMapRef.current));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run once on mount
 
   // Close export menu when clicking outside
   useEffect(() => {
