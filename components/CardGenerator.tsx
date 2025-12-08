@@ -669,6 +669,7 @@ export default function CardGenerator() {
   }, []);
   const [sidebarWidth, setSidebarWidth] = useState(400);
   const [isDragging, setIsDragging] = useState(false);
+  const [showFooter, setShowFooter] = useState(true);
   const [footerText, setFooterText] = useState("FlipMark");
   const [footerIcon, setFooterIcon] = useState<keyof typeof SYMBOLS>('sparkles');
   const [isMobileEditing, setIsMobileEditing] = useState(false);
@@ -1485,44 +1486,87 @@ export default function CardGenerator() {
               </div>
             </div>
 
-            {/* Footer Text & Window Controls (Visible on Desktop OR Mobile Style Tab) */}
+            {/* Window & Footer Controls (Visible on Desktop OR Mobile Style Tab) */}
             <div className={cn("space-y-2 lg:space-y-3", "lg:block", mobileActiveTab === 'style' ? "block" : "hidden")}>
               <div className="hidden lg:flex items-center gap-2 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider"> {/* Hidden title on mobile */}
                 <Layout size={12} /> Appearance
               </div>
 
+                {/* Window Decoration Selector */}
+                <div className="space-y-1.5">
+                  <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">Window Style</span>
+                  <div className="grid grid-cols-3 gap-2">
+                    {(Object.keys(DECORATIONS) as Array<keyof typeof DECORATIONS>).map((d) => (
+                      <button 
+                        key={d}
+                        onClick={() => setDecoration(d)}
+                        className={cn(
+                          "py-1.5 text-[10px] font-medium rounded-md transition-all border",
+                          decoration === d 
+                            ? "bg-indigo-50 dark:bg-indigo-900/50 border-indigo-200 dark:border-indigo-700 text-indigo-700 dark:text-indigo-400" 
+                            : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-slate-600 dark:text-slate-400 hover:border-gray-300 dark:hover:border-gray-600"
+                        )}
+                      >
+                        {DECORATIONS[d].name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 {/* Footer Text Input with Icon Picker */}
                 <div className="space-y-1.5 relative">
-                  <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">Footer Text</span>
-                  <div className="flex items-center gap-2 p-2 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-                     {/* Clickable Icon - Opens Picker */}
-                     <button
-                       onClick={() => setShowIconPicker(!showIconPicker)}
-                       className={cn(
-                         "p-2 rounded-lg transition-all flex-shrink-0",
-                         showIconPicker 
-                           ? "bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400" 
-                           : "bg-gray-100 dark:bg-gray-700 text-slate-500 dark:text-slate-400 hover:bg-gray-200 dark:hover:bg-gray-600"
-                       )}
-                       title="Choose icon"
-                     >
-                       {(() => {
-                         const IconComponent = SYMBOLS[footerIcon].icon;
-                         return <IconComponent size={16} />;
-                       })()}
-                     </button>
-                     
-                     <input 
-                        type="text"
-                        value={footerText}
-                        onChange={(e) => setFooterText(e.target.value)}
-                        className="flex-1 text-xs font-medium text-slate-700 dark:text-slate-300 bg-transparent outline-none placeholder:text-slate-400 dark:placeholder:text-slate-600"
-                        placeholder="Footer text..."
-                     />
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">Footer</span>
+                    {/* Show/Hide Toggle */}
+                    <button
+                      onClick={() => setShowFooter(!showFooter)}
+                      className={cn(
+                        "relative w-9 h-5 rounded-full transition-colors duration-200 flex-shrink-0",
+                        showFooter 
+                          ? "bg-indigo-500" 
+                          : "bg-slate-300 dark:bg-gray-600"
+                      )}
+                    >
+                      <span 
+                        className={cn(
+                          "absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow-md transition-all duration-200",
+                          showFooter && "translate-x-4"
+                        )}
+                      />
+                    </button>
                   </div>
                   
+                  {showFooter && (
+                    <div className="flex items-center gap-2 p-2 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
+                       {/* Clickable Icon - Opens Picker */}
+                       <button
+                         onClick={() => setShowIconPicker(!showIconPicker)}
+                         className={cn(
+                           "p-2 rounded-lg transition-all flex-shrink-0",
+                           showIconPicker 
+                             ? "bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400" 
+                             : "bg-gray-100 dark:bg-gray-700 text-slate-500 dark:text-slate-400 hover:bg-gray-200 dark:hover:bg-gray-600"
+                         )}
+                         title="Choose icon"
+                       >
+                         {(() => {
+                           const IconComponent = SYMBOLS[footerIcon].icon;
+                           return <IconComponent size={16} />;
+                         })()}
+                       </button>
+                       
+                       <input 
+                          type="text"
+                          value={footerText}
+                          onChange={(e) => setFooterText(e.target.value)}
+                          className="flex-1 text-xs font-medium text-slate-700 dark:text-slate-300 bg-transparent outline-none placeholder:text-slate-400 dark:placeholder:text-slate-600"
+                          placeholder="Footer text..."
+                       />
+                    </div>
+                  )}
+                  
                   {/* Desktop Icon Picker - Positioned below Footer Text */}
-                  {showIconPicker && (
+                  {showFooter && showIconPicker && (
                     <div 
                       className="hidden lg:block absolute top-full left-0 right-0 mt-2 z-50 bg-white dark:bg-gray-800 shadow-lg border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150"
                       onClick={(e) => e.stopPropagation()}
@@ -1561,28 +1605,6 @@ export default function CardGenerator() {
                       </div>
                     </div>
                   )}
-                </div>
-                
-
-                {/* Window Decoration Selector */}
-                <div className="space-y-1.5">
-                  <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">Window Style</span>
-                  <div className="grid grid-cols-3 gap-2">
-                    {(Object.keys(DECORATIONS) as Array<keyof typeof DECORATIONS>).map((d) => (
-                      <button 
-                        key={d}
-                        onClick={() => setDecoration(d)}
-                        className={cn(
-                          "py-1.5 text-[10px] font-medium rounded-md transition-all border",
-                          decoration === d 
-                            ? "bg-indigo-50 dark:bg-indigo-900/50 border-indigo-200 dark:border-indigo-700 text-indigo-700 dark:text-indigo-400" 
-                            : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-slate-600 dark:text-slate-400 hover:border-gray-300 dark:hover:border-gray-600"
-                        )}
-                      >
-                        {DECORATIONS[d].name}
-                      </button>
-                    ))}
-                  </div>
                 </div>
 
                 {/* Canvas Pattern Selector */}
@@ -1891,6 +1913,8 @@ export default function CardGenerator() {
                   "prose-blockquote:border-l-4 prose-blockquote:border-current/20 prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:opacity-80",
                   "prose-li:marker:opacity-50",
                   "prose-code:rounded-md prose-code:bg-black/5 prose-code:px-1.5 prose-code:py-0.5 prose-code:font-normal prose-code:before:content-none prose-code:after:content-none",
+                  // Remove margin from first/last elements for consistent padding
+                  "[&>*:first-child]:mt-0 [&>*:last-child]:mb-0",
                   // Dynamic Styles
                   THEMES[theme].text,
                   SIZES[fontSize].class
@@ -1902,8 +1926,8 @@ export default function CardGenerator() {
                       components={{
                         // Custom image component to handle empty src and image IDs
                         img: ({ src, alt, ...props }) => {
-                          // Don't render if src is empty
-                          if (!src || src.trim() === '') return null;
+                          // Don't render if src is empty or not a string
+                          if (!src || typeof src !== 'string' || src.trim() === '') return null;
                           // Resolve image ID from map if needed
                           let actualSrc = src;
                           if (src.startsWith('__IMG_') && src.endsWith('__')) {
@@ -1923,16 +1947,18 @@ export default function CardGenerator() {
                 </div>
 
                 {/* Footer */}
-                <div className="mt-6 pt-4 border-t border-black/5 flex items-center justify-between opacity-30 select-none">
-                   <div className="flex items-center gap-1.5">
-                     {/* Dynamic Symbol */}
-                     {(() => {
-                       const IconComponent = SYMBOLS[footerIcon].icon;
-                       return <IconComponent size={14} className="text-current" />;
-                     })()}
-                     <span className="text-[10px] uppercase tracking-widest font-bold font-sans">{footerText}</span>
-                   </div>
-                </div>
+                {showFooter && (
+                  <div className="mt-6 pt-4 border-t border-black/5 flex items-center justify-between opacity-30 select-none">
+                     <div className="flex items-center gap-1.5">
+                       {/* Dynamic Symbol */}
+                       {(() => {
+                         const IconComponent = SYMBOLS[footerIcon].icon;
+                         return <IconComponent size={14} className="text-current" />;
+                       })()}
+                       <span className="text-[10px] uppercase tracking-widest font-bold font-sans">{footerText}</span>
+                     </div>
+                  </div>
+                )}
 
               </div>
             </div>
