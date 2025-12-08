@@ -21,7 +21,9 @@ import {
   Undo,
   Redo,
   ChevronDown,
-  X
+  X,
+  Upload,
+  Link
 } from "lucide-react";
 
 // Create lowlight instance with common languages
@@ -511,6 +513,155 @@ function CodeBlockDropdown({
   );
 }
 
+// Image Dropdown component for toolbar - allows upload or URL input
+function ImageDropdown({ 
+  editor
+}: { 
+  editor: ReturnType<typeof useEditor>;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [showUrlInput, setShowUrlInput] = useState(false);
+  const [imageUrl, setImageUrl] = useState('');
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+        setShowUrlInput(false);
+        setImageUrl('');
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const base64 = event.target?.result as string;
+        if (base64 && editor) {
+          editor.chain().focus().setImage({ src: base64 }).run();
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+    // Reset input so same file can be selected again
+    e.target.value = '';
+    setIsOpen(false);
+  };
+
+  const handleUrlSubmit = () => {
+    if (imageUrl.trim() && editor) {
+      editor.chain().focus().setImage({ src: imageUrl.trim() }).run();
+      setImageUrl('');
+      setShowUrlInput(false);
+      setIsOpen(false);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleUrlSubmit();
+    }
+    if (e.key === 'Escape') {
+      setShowUrlInput(false);
+      setImageUrl('');
+    }
+  };
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleFileUpload}
+      />
+      
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        title="Insert Image"
+        className={`p-1.5 rounded transition-colors flex items-center gap-0.5 ${
+          editor?.isActive('image')
+            ? 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400' 
+            : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-gray-700 hover:text-slate-700 dark:hover:text-slate-200'
+        }`}
+      >
+        <ImageIcon size={16} />
+        <ChevronDown size={12} />
+      </button>
+      
+      {isOpen && (
+        <div className="absolute top-full left-0 mt-1 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-lg shadow-lg z-50 min-w-[200px] overflow-hidden">
+          {!showUrlInput ? (
+            <>
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full px-3 py-2.5 text-left text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-gray-700 hover:text-slate-900 dark:hover:text-white transition-colors flex items-center gap-2"
+              >
+                <Upload size={14} />
+                Upload
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowUrlInput(true)}
+                className="w-full px-3 py-2.5 text-left text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-gray-700 hover:text-slate-900 dark:hover:text-white transition-colors flex items-center gap-2"
+              >
+                <Link size={14} />
+                From URL
+              </button>
+            </>
+          ) : (
+            <div className="p-3">
+              <div className="text-xs text-slate-500 dark:text-slate-400 mb-2 flex items-center gap-1">
+                <Link size={12} />
+                Image URL
+              </div>
+              <input
+                type="url"
+                value={imageUrl}
+                onChange={(e) => setImageUrl(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="https://example.com/image.jpg"
+                className="w-full px-2.5 py-1.5 text-sm border border-slate-200 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-slate-700 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                autoFocus
+              />
+              <div className="flex gap-2 mt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowUrlInput(false);
+                    setImageUrl('');
+                  }}
+                  className="flex-1 px-2 py-1.5 text-xs text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-gray-700 rounded transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleUrlSubmit}
+                  disabled={!imageUrl.trim()}
+                  className="flex-1 px-2 py-1.5 text-xs bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Insert
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function NovelEditor({ 
   initialContent = "", 
   onContentChange,
@@ -676,7 +827,20 @@ export default function NovelEditor({
         </ToolbarButton>
         
         <ToolbarButton
-          onClick={() => editor.chain().focus().toggleBlockquote().run()}
+          onClick={() => {
+            // If already in blockquote, just toggle it off (don't affect list state)
+            if (editor.isActive('blockquote')) {
+              editor.chain().focus().toggleBlockquote().run();
+            } 
+            // If in a list but not in blockquote, exit list first then add blockquote
+            else if (editor.isActive('bulletList') || editor.isActive('orderedList')) {
+              editor.chain().focus().liftListItem('listItem').toggleBlockquote().run();
+            } 
+            // Normal case: just toggle blockquote
+            else {
+              editor.chain().focus().toggleBlockquote().run();
+            }
+          }}
           isActive={editor.isActive('blockquote')}
           title="Quote"
         >
@@ -700,40 +864,9 @@ export default function NovelEditor({
         
         <div className="w-px h-5 bg-slate-200 dark:bg-gray-600 mx-1" />
         
-        <label className="cursor-pointer">
-          <input
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) {
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                  const base64 = event.target?.result as string;
-                  if (base64 && editor) {
-                    editor.chain().focus().setImage({ src: base64 }).run();
-                  }
-                };
-                reader.readAsDataURL(file);
-              }
-              // Reset input so same file can be selected again
-              e.target.value = '';
-            }}
-          />
-          <div
-            className={`p-1.5 rounded transition-colors inline-flex items-center ${
-              editor.isActive('image')
-                ? 'bg-indigo-100 text-indigo-600' 
-                : 'text-slate-500 hover:bg-slate-100 hover:text-slate-700'
-            }`}
-            title="Upload Image"
-          >
-            <ImageIcon size={16} />
-          </div>
-        </label>
+        <ImageDropdown editor={editor} />
         
-        <div className="w-px h-5 bg-slate-200 mx-1" />
+        <div className="w-px h-5 bg-slate-200 dark:bg-gray-600 mx-1" />
         
         <ToolbarButton
           onClick={() => editor.chain().focus().undo().run()}
@@ -870,6 +1003,20 @@ export default function NovelEditor({
         .dark .ProseMirror blockquote {
           border-left-color: #4b5563;
           color: #9ca3af;
+        }
+        
+        /* Remove default quotes from blockquote */
+        .ProseMirror blockquote::before,
+        .ProseMirror blockquote::after,
+        .ProseMirror blockquote p::before,
+        .ProseMirror blockquote p::after {
+          content: none !important;
+        }
+        
+        /* Dark mode strong/bold text */
+        .dark .ProseMirror strong {
+          color: #f3f4f6;
+          font-weight: 700;
         }
         
         .dark .ProseMirror ul li::marker,

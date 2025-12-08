@@ -1910,9 +1910,10 @@ export default function CardGenerator() {
                   // Base Styles
                   "prose-headings:font-bold prose-headings:tracking-tight prose-headings:mb-4",
                   "prose-p:font-medium prose-p:opacity-90 prose-p:my-3",
-                  "prose-blockquote:border-l-4 prose-blockquote:border-current/20 prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:opacity-80",
+                  "prose-blockquote:border-l-4 prose-blockquote:border-current/20 prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:opacity-80 prose-blockquote:before:content-none prose-blockquote:after:content-none [&_blockquote_p]:before:content-none [&_blockquote_p]:after:content-none",
                   "prose-li:marker:opacity-50",
                   "prose-code:rounded-md prose-code:bg-black/5 prose-code:px-1.5 prose-code:py-0.5 prose-code:font-normal prose-code:before:content-none prose-code:after:content-none",
+                  "prose-strong:text-current prose-strong:font-bold",
                   // Remove margin from first/last elements for consistent padding
                   "[&>*:first-child]:mt-0 [&>*:last-child]:mb-0",
                   // Dynamic Styles
