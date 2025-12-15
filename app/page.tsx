@@ -1,7 +1,5 @@
-import CardGenerator from "@/components/CardGenerator";
+import LandingPage from "@/components/LandingPage";
 
 export default function Home() {
-  return <CardGenerator />;
+  return <LandingPage />;
 }
-
-

@@ -2,14 +2,20 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "FlipMark - Markdown to Card Generator",
-  description: "Turn your Markdown into beautiful, shareable social media cards. Features real-time preview, stunning themes, zoom controls, and HD export.",
-  keywords: ["markdown", "card generator", "social media", "image export", "design tool"],
+  title: "FlipMark - Transform Markdown into Visual Art",
+  description: "Create stunning, shareable cards from your Markdown text in seconds. 9+ premium themes, HD export up to 4x, real-time preview. No sign-up required.",
+  keywords: ["markdown", "card generator", "social media cards", "image export", "design tool", "content creation", "visual content"],
   authors: [{ name: "Justin Bao" }],
   openGraph: {
-    title: "FlipMark - Markdown to Card Generator",
-    description: "Create aesthetic cards from Markdown text instantly",
+    title: "FlipMark - Transform Markdown into Visual Art",
+    description: "Create stunning, shareable cards from your Markdown text in seconds. No design skills required.",
     type: "website",
+    siteName: "FlipMark",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "FlipMark - Transform Markdown into Visual Art",
+    description: "Create stunning, shareable cards from your Markdown text in seconds.",
   },
 };
 
@@ -19,12 +25,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="zh-CN" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <body className="antialiased">
         {children}
       </body>
     </html>
   );
 }
-
-
