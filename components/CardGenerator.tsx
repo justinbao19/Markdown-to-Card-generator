@@ -634,11 +634,13 @@ export default function CardGenerator() {
   const [scale, setScale] = useState(100);
   const [isExporting, setIsExporting] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
+  const [showShareMenu, setShowShareMenu] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [previewImageUrl, setPreviewImageUrl] = useState<string>('');
   const [exportWithBackground, setExportWithBackground] = useState(true);
   const [previewWithBackground, setPreviewWithBackground] = useState(true);
   const exportMenuRef = useRef<HTMLDivElement>(null);
+  const shareMenuRef = useRef<HTMLDivElement>(null);
   const pinchState = useRef({
     active: false,
     initialDistance: 0,
@@ -664,11 +666,14 @@ export default function CardGenerator() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only run once on mount
 
-  // Close export menu when clicking outside
+  // Close menus when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (exportMenuRef.current && !exportMenuRef.current.contains(event.target as Node)) {
         setShowExportMenu(false);
+      }
+      if (shareMenuRef.current && !shareMenuRef.current.contains(event.target as Node)) {
+        setShowShareMenu(false);
       }
       // Icon picker is handled via its own backdrop click handler
     }
@@ -900,6 +905,118 @@ export default function CardGenerator() {
     setPreviewWithBackground(newValue);
     await generatePreview(newValue);
   }, [previewWithBackground, generatePreview]);
+
+  // Share to X (Twitter)
+  const handleShareToX = useCallback(async (withBackground: boolean = true) => {
+    if (cardRef.current === null) return;
+    setIsExporting(true);
+    setShowShareMenu(false);
+    
+    try {
+      let dataUrl: string;
+      
+      if (withBackground) {
+        // Create a temporary container with background
+        const exportContainer = document.createElement('div');
+        exportContainer.style.cssText = `
+          width: 700px;
+          padding: 90px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: ${THEMES[theme].cssBg};
+          position: fixed;
+          top: 0;
+          left: 0;
+          z-index: 9999;
+        `;
+        
+        // Add pattern overlay (if not 'none')
+        if (pattern !== 'none') {
+          const patternOverlay = document.createElement('div');
+          patternOverlay.style.cssText = `
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background-image: ${PATTERNS[pattern].css};
+            background-size: ${PATTERNS[pattern].size};
+          `;
+          exportContainer.appendChild(patternOverlay);
+        }
+        
+        // Clone the actual card
+        const cardClone = cardRef.current.cloneNode(true) as HTMLElement;
+        cardClone.style.position = 'relative';
+        exportContainer.appendChild(cardClone);
+        
+        // Add to document temporarily
+        document.body.appendChild(exportContainer);
+        
+        // Wait a frame for styles to apply
+        await new Promise(resolve => requestAnimationFrame(resolve));
+        
+        // Generate image with background
+        dataUrl = await toPng(exportContainer, { 
+          cacheBust: true, 
+          pixelRatio: 2,
+        });
+        
+        // Cleanup
+        document.body.removeChild(exportContainer);
+      } else {
+        // Generate image without background (card only)
+        dataUrl = await toPng(cardRef.current, { 
+          cacheBust: true, 
+          pixelRatio: 2,
+        });
+      }
+      
+      // Try to copy image to clipboard
+      let clipboardSuccess = false;
+      try {
+        const response = await fetch(dataUrl);
+        const blob = await response.blob();
+        await navigator.clipboard.write([
+          new ClipboardItem({
+            'image/png': blob
+          })
+        ]);
+        clipboardSuccess = true;
+      } catch (clipboardError) {
+        console.log('Clipboard API not supported, downloading image instead');
+      }
+      
+      // FlipMark website link
+      const flipmarkUrl = "https://flipmark.vercel.app";
+      
+      // Prepare share text with link
+      const shareText = clipboardSuccess 
+        ? `✨ Made with FlipMark\n\n📝 Markdown → Beautiful Card\n\n🔗 ${flipmarkUrl}\n\n(Cmd/Ctrl+V to paste image 👇)`
+        : `✨ Made with FlipMark\n\n📝 Markdown → Beautiful Card\n\n🔗 ${flipmarkUrl}`;
+      
+      // If clipboard not supported, download the image first
+      if (!clipboardSuccess) {
+        const link = document.createElement('a');
+        link.download = `flipmark-share-${Date.now()}.png`;
+        link.href = dataUrl;
+        link.click();
+        // Show alert for manual upload
+        alert('Image downloaded! Please upload it manually when posting on X.');
+      } else {
+        // Show success message
+        alert('✅ Image copied to clipboard!\n\nPress Cmd+V (Mac) or Ctrl+V (Windows) to paste in X.');
+      }
+      
+      // Open X share intent
+      const xShareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`;
+      window.open(xShareUrl, '_blank', 'width=550,height=420');
+      
+    } catch (err) {
+      console.error('Failed to share', err);
+    } finally {
+      setIsExporting(false);
+    }
+  }, [cardRef, theme, pattern]);
 
   // Export with or without background
   const handleExport = useCallback(async (pixelRatio: number = 2, withBackground: boolean = true) => {
@@ -2021,6 +2138,63 @@ export default function CardGenerator() {
             <Monitor size={16} />
             <span className="hidden sm:inline">Preview</span>
           </button>
+
+          {/* Share to X Button with Menu */}
+          <div className="relative" ref={shareMenuRef}>
+            <button
+              onClick={(e) => { e.stopPropagation(); setShowShareMenu(!showShareMenu); }}
+              disabled={isExporting}
+              className="flex items-center gap-2 bg-black dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 text-white dark:text-black px-4 py-2 rounded-full font-medium text-sm transition-all shadow-md hover:shadow-lg active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed border border-gray-200 dark:border-gray-600"
+              title="Share to X"
+            >
+              <svg 
+                viewBox="0 0 24 24" 
+                className="w-4 h-4 fill-current"
+                aria-hidden="true"
+              >
+                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+              </svg>
+              <span className="hidden sm:inline">Share</span>
+            </button>
+            
+            {/* Share Options Menu */}
+            {showShareMenu && !isExporting && (
+              <div className="absolute bottom-full mb-2 right-0 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden min-w-[200px] animate-in fade-in slide-in-from-bottom-2 duration-150">
+                <div className="px-3 py-2 bg-slate-50/80 dark:bg-gray-900/80 border-b border-gray-100 dark:border-gray-700">
+                  <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Share to X</span>
+                </div>
+                <div className="py-1">
+                  {/* With Background */}
+                  <button
+                    onClick={() => handleShareToX(true)}
+                    className="w-full px-3 py-2.5 flex items-center gap-3 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors group text-left"
+                  >
+                    <span className="w-8 h-8 flex items-center justify-center bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/50 dark:to-purple-900/50 rounded-lg">
+                      <Layers size={14} className="text-indigo-600 dark:text-indigo-400" />
+                    </span>
+                    <div>
+                      <div className="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-indigo-700 dark:group-hover:text-indigo-400">With Background</div>
+                      <div className="text-[10px] text-slate-400 dark:text-slate-500">Card + canvas pattern</div>
+                    </div>
+                  </button>
+                  
+                  {/* Card Only */}
+                  <button
+                    onClick={() => handleShareToX(false)}
+                    className="w-full px-3 py-2.5 flex items-center gap-3 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors group text-left"
+                  >
+                    <span className="w-8 h-8 flex items-center justify-center bg-gray-100 dark:bg-gray-700 rounded-lg">
+                      <CreditCard size={14} className="text-slate-600 dark:text-slate-400" />
+                    </span>
+                    <div>
+                      <div className="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-indigo-700 dark:group-hover:text-indigo-400">Card Only</div>
+                      <div className="text-[10px] text-slate-400 dark:text-slate-500">No background</div>
+                    </div>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* Export Action with Resolution Menu */}
           <div className="relative" ref={exportMenuRef}>
