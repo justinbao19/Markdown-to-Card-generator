@@ -270,7 +270,7 @@ export default function LandingPage() {
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Link>
               <a 
-                href="https://github.com"
+                href="https://github.com/justinbao19/Markdown-to-Card-generator"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 px-8 py-4 rounded-full border border-white/20 text-white font-medium hover:bg-white/[0.05] transition-colors"
@@ -418,7 +418,7 @@ export default function LandingPage() {
             <div className="flex items-center gap-6 text-sm text-gray-500">
               <a href="#" className="hover:text-white transition-colors">Privacy</a>
               <a href="#" className="hover:text-white transition-colors">Terms</a>
-              <a href="https://github.com" className="hover:text-white transition-colors">GitHub</a>
+              <a href="https://github.com/justinbao19/Markdown-to-Card-generator" className="hover:text-white transition-colors">GitHub</a>
             </div>
           </div>
         </div>

@@ -1,97 +1,195 @@
-# Markdown to Card Generator 🎨
+# FlipMark ✨
 
-A modern, aesthetic tool that turns your Markdown text into beautiful, shareable social media cards. Built with Next.js 16, React 19, and Tailwind CSS.
+**Turn Markdown into beautiful, shareable cards in seconds.**
 
-<!-- ![Project Preview](./public/preview.png) -->
-<!-- *(Note: Add a screenshot of your app here)* -->
+A modern, feature-rich tool that transforms your Markdown content into stunning social media cards. Perfect for developers, writers, and content creators who want to share their ideas visually.
+
+🔗 **Live Demo**: [flipmark.vercel.app](https://flipmark.vercel.app)
+
+---
+
+## 🎯 What is FlipMark?
+
+FlipMark is a web-based card generator that lets you:
+- Write content in **Markdown** or **Visual (WYSIWYG)** mode
+- Customize the look with **9 themes**, **6 fonts**, and **5 canvas patterns**
+- Export as **high-resolution PNG** images
+- **Share directly to X (Twitter)** with one click
+
+---
 
 ## ✨ Features
 
-- **📝 Real-time Editing**: Type Markdown on the left, see the changes instantly on the right.
-- **🎨 3 Stunning Themes**:
-  - **Notion Light**: Clean, minimal, and professional.
-  - **Dev Dark**: High-contrast dark mode for developers.
-  - **OpenAI Glass**: Modern glassmorphism with gradient backgrounds.
-- **🔍 Interactive Preview**:
-  - **Zoom Controls**: Use the slider or buttons to zoom in/out (50% - 150%).
-  - **Scrollable Canvas**: Easily handle long content without cropping.
-- **🖼️ High-Quality Export**: One-click export to HD PNG (Retina/2x pixel ratio).
-- **💅 Beautiful Typography**: Powered by `@tailwindcss/typography` for perfect reading rhythm.
-- **🎛️ Customization**: Toggle window controls (macOS style traffic lights) on/off.
+### 📝 Dual Editor Modes
+| Mode | Description |
+|------|-------------|
+| **Markdown** | Write in plain Markdown with syntax highlighting |
+| **Visual** | Notion-style WYSIWYG editor powered by Novel |
+
+### 🎨 9 Beautiful Themes
+- **Notion Light** – Clean, minimal, professional
+- **Dev Dark** – High-contrast dark mode for developers
+- **Nebula Glass** – Modern glassmorphism with purple gradients
+- **Bamboo Forest** – Fresh green, nature-inspired
+- **Sunset Vibes** – Warm orange to indigo gradient
+- **Midnight Blue** – Deep blue, elegant dark theme
+- **Filo Blue** – Bright sky blue, friendly feel
+- **Deep Ocean** – Gradient blue, ocean-inspired
+- **Sunset Bloom** – Rose to orange, warm tones
+
+### 🔤 Typography Controls
+- **6 Font Families**: Sans, Serif, Mono, Georgia, Palatino, Garamond
+- **4 Font Sizes**: Small, Medium, Large, X-Large
+- **4 Line Heights**: Tight, Normal, Relaxed, Loose
+
+### 🪟 Window Decorations
+Choose from 6 window styles to match your content:
+- **None** – Clean, no decoration
+- **macOS** – Classic traffic light buttons
+- **Filo Mail** – Email client style
+- **Browser** – Safari-style address bar
+- **Terminal** – Command line aesthetic
+- **Notion** – Breadcrumb navigation style
+
+### 🎭 Canvas Patterns
+Add visual texture to your background:
+- Dots, Grid, Cross, Lines, or None
+
+### 🏷️ Customizable Footer
+- Toggle footer on/off
+- Custom text
+- **60+ icons** to choose from (Lucide icon set)
+
+### 📤 Export Options
+- **Preview** before exporting
+- **Multiple resolutions**: 1x, 2x (Retina), 3x, 4x (Ultra HD)
+- **With or without background** – export full canvas or card only
+
+### 🐦 Share to X (Twitter)
+- One-click share to X
+- Auto-copies image to clipboard
+- Pre-filled share text with FlipMark link
+- Choose to share with background or card only
+
+### 🌓 Dark Mode
+- System preference detection
+- Manual toggle available
+- Persisted in localStorage
+
+### 📱 Responsive Design
+- Works on desktop and mobile
+- Touch-friendly pinch-to-zoom on mobile
+- Adaptive layout for different screen sizes
+
+---
 
 ## 🛠️ Tech Stack
 
-- **Framework**: [Next.js 16](https://nextjs.org/) (App Router)
-- **UI Library**: [React 19](https://react.dev/)
-- **Styling**: [Tailwind CSS v3](https://tailwindcss.com/)
-- **Icons**: [Lucide React](https://lucide.dev/)
-- **Core Logic**:
-  - `react-markdown`: For safe and easy Markdown parsing.
-  - `html-to-image`: For generating the image output.
-  - `clsx` & `tailwind-merge`: For dynamic class handling.
+| Category | Technology |
+|----------|------------|
+| **Framework** | [Next.js 15](https://nextjs.org/) (App Router) |
+| **UI Library** | [React 19](https://react.dev/) |
+| **Styling** | [Tailwind CSS v4](https://tailwindcss.com/) |
+| **Editor** | [Novel](https://novel.sh/) (Notion-style WYSIWYG) |
+| **Icons** | [Lucide React](https://lucide.dev/) |
+| **Markdown** | `react-markdown` |
+| **Image Export** | `html-to-image` |
+| **Syntax Highlighting** | `lowlight` |
+
+---
 
 ## 🚀 Getting Started
 
 ### Prerequisites
 
-Ensure you have Node.js installed (v18+ recommended).
+- Node.js 18+ installed
 
 ### Installation
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/your-username/markdown-to-card-generator.git
-   cd markdown-to-card-generator
-   ```
+```bash
+# Clone the repository
+git clone https://github.com/user/flipmark.git
+cd flipmark
 
-2. **Install dependencies**
-   ```bash
-   npm install
-   # or
-   yarn install
-   ```
+# Install dependencies
+npm install
 
-3. **Start the development server**
-   ```bash
-   npm run dev
-   ```
+# Start development server
+npm run dev
+```
 
-4. **Open your browser**
-   Navigate to [http://localhost:3000](http://localhost:3000) to see the app running.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+---
 
 ## 📖 Usage
 
-1. **Write**: Enter your content in the left-hand Markdown editor.
-2. **Style**: Use the floating toolbar at the bottom to:
-   - Switch themes.
-   - Toggle window decorations.
-   - Zoom in or out to adjust the view.
-3. **Export**: Click the **Export** button to save your card as a PNG image.
+### 1. Write Your Content
+- Switch between **Markdown** and **Visual** mode using the toggle
+- Use standard Markdown syntax: `# Heading`, `**bold**`, `*italic*`, `> quote`, `- list`
+
+### 2. Customize the Style
+- **Theme**: Choose from 9 color schemes
+- **Typography**: Select font family, size, and line height
+- **Appearance**: Pick window decoration, canvas pattern, and footer settings
+
+### 3. Preview & Export
+- Click **Preview** to see the final result
+- Click **Export** to download as PNG (choose resolution and background option)
+
+### 4. Share to X
+- Click **Share** button
+- Choose "With Background" or "Card Only"
+- Image is copied to clipboard automatically
+- Paste (Cmd/Ctrl+V) in the X compose window
+
+---
 
 ## 📂 Project Structure
 
-```bash
-├── app/
-│   ├── layout.tsx      # Root layout
-│   ├── page.tsx        # Home page
-│   └── globals.css     # Global styles & Tailwind directives
-├── components/
-│   └── CardGenerator.tsx # Main application logic & UI
-├── public/             # Static assets
-├── tailwind.config.ts  # Tailwind configuration
-└── package.json        # Dependencies
 ```
+├── app/
+│   ├── layout.tsx        # Root layout with metadata
+│   ├── page.tsx          # Home page
+│   ├── globals.css       # Global styles & Tailwind
+│   └── icon.tsx          # Dynamic favicon
+├── components/
+│   ├── CardGenerator.tsx # Main application component
+│   └── NovelEditor.tsx   # WYSIWYG editor wrapper
+├── public/
+│   └── assets/           # Static assets
+├── tailwind.config.ts    # Tailwind configuration
+└── package.json          # Dependencies
+```
+
+---
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Contributions are welcome! Feel free to:
 
-1. Fork the project
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/awesome`)
+3. Commit your changes (`git commit -m 'Add awesome feature'`)
+4. Push to branch (`git push origin feature/awesome`)
 5. Open a Pull Request
+
+---
 
 ## 📄 License
 
 This project is licensed under the [ISC License](LICENSE).
+
+---
+
+## 🙏 Acknowledgments
+
+- [Novel](https://novel.sh/) for the amazing WYSIWYG editor
+- [Lucide](https://lucide.dev/) for the beautiful icon set
+- [Tailwind CSS](https://tailwindcss.com/) for utility-first styling
+
+---
+
+<p align="center">
+  Made with ❤️ by <a href="https://x.com/JustinBao_">@JustinBao_</a>
+</p>
