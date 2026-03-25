@@ -11,12 +11,17 @@ import {
   Eye,
   Code,
   Layers,
-  Moon,
-  Sun,
   ChevronRight,
   Star,
-  Check
+  Check,
+  Terminal,
+  Copy
 } from "lucide-react";
+
+const CLI_COMMANDS = `npm run card -- -i ./note.md -o ./output/card.png
+npm run card -- --markdown "# Hello\\nCard" --theme ocean
+cat ./note.md | npm run card -- -o ./output/card.png
+npm run card:help`;
 
 // Animated gradient orb component
 function GradientOrb({ className }: { className?: string }) {
@@ -153,10 +158,30 @@ function Stats() {
 
 export default function LandingPage() {
   const [mounted, setMounted] = useState(false);
+  const [cliCopied, setCliCopied] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  const handleCopyCliCommands = async () => {
+    try {
+      await navigator.clipboard.writeText(CLI_COMMANDS);
+    } catch {
+      const textarea = document.createElement("textarea");
+      textarea.value = CLI_COMMANDS;
+      textarea.setAttribute("readonly", "");
+      textarea.style.position = "absolute";
+      textarea.style.left = "-9999px";
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textarea);
+    }
+
+    setCliCopied(true);
+    window.setTimeout(() => setCliCopied(false), 1600);
+  };
 
   const features = [
     {
@@ -356,6 +381,75 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* CLI Section */}
+      <section className="relative z-10 py-28">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="grid lg:grid-cols-2 gap-10 items-center">
+            <div>
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/[0.05] border border-white/[0.1] text-sm text-gray-300 mb-6">
+                <Terminal className="w-4 h-4 text-cyan-400" />
+                <span>New: CLI for Agents & Terminal</span>
+              </div>
+              <h2 className="text-4xl md:text-5xl font-bold mb-6 tracking-tight">
+                Web UI stays intact.
+                <br />
+                <span className="bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent">
+                  CLI is now available too.
+                </span>
+              </h2>
+              <p className="text-lg text-gray-400 leading-relaxed mb-8">
+                Keep using the full visual editor and interactive export flow in the app,
+                while enabling direct command-line generation for scripts and agent automation.
+              </p>
+              <div className="space-y-3 text-gray-300">
+                <div className="flex items-center gap-2">
+                  <Check className="w-4 h-4 text-green-500" />
+                  <span>Input from file, inline markdown, or stdin pipe</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Check className="w-4 h-4 text-green-500" />
+                  <span>Generate PNG directly to local path</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Check className="w-4 h-4 text-green-500" />
+                  <span>Theme, width, padding, scale all controllable by flags</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="relative">
+              <div className="absolute -inset-4 bg-gradient-to-br from-indigo-500/20 via-cyan-500/15 to-transparent rounded-3xl blur-2xl opacity-60" />
+              <div className="relative bg-[#0d0d0f] rounded-2xl border border-white/10 overflow-hidden shadow-2xl">
+                <div className="flex items-center justify-between px-4 py-3 bg-white/[0.03] border-b border-white/[0.05]">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-red-500/80" />
+                    <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
+                    <div className="w-3 h-3 rounded-full bg-green-500/80" />
+                    <span className="ml-3 text-xs text-gray-500 font-mono">cli examples</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleCopyCliCommands}
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                      cliCopied
+                        ? "bg-emerald-500/15 text-emerald-300 border border-emerald-400/30"
+                        : "bg-white/[0.04] text-gray-300 border border-white/10 hover:bg-white/[0.08]"
+                    }`}
+                    aria-label="Copy CLI commands"
+                  >
+                    <Copy className="w-3.5 h-3.5" />
+                    {cliCopied ? "Copied" : "Copy command"}
+                  </button>
+                </div>
+                <pre className="p-5 md:p-6 text-sm md:text-[13px] text-gray-200 font-mono leading-7 overflow-x-auto">
+{CLI_COMMANDS}
+                </pre>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="relative z-10 py-32">
         <div className="max-w-4xl mx-auto px-6 text-center">
@@ -460,4 +554,3 @@ export default function LandingPage() {
     </div>
   );
 }
-

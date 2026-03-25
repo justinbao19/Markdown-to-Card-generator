@@ -3,11 +3,16 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "bin": {
+    "flipmark": "./bin/flipmark.js"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "card": "node ./bin/flipmark.js",
+    "card:help": "node ./bin/flipmark.js --help"
   },
   "keywords": [],
   "author": "",
@@ -32,9 +37,11 @@
     "clsx": "^2.1.1",
     "html-to-image": "^1.11.13",
     "lowlight": "^3.3.0",
+    "marked": "^17.0.5",
     "lucide-react": "^0.554.0",
     "next": "16.0.10",
     "novel": "^1.0.2",
+    "puppeteer": "^24.40.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-markdown": "^10.1.0",

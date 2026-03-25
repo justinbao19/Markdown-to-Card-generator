@@ -145,6 +145,43 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
+## 💻 CLI Usage (New)
+
+Web UI is still fully available. CLI is an additional entry point for agent/terminal workflows.
+
+### Quick Start
+
+```bash
+# Generate card from a markdown file
+npm run card -- -i ./note.md -o ./output/card.png
+
+# Or pass markdown text directly
+npm run card -- --markdown "# Hello\nThis is a card" --theme ocean
+
+# Or pipe from stdin
+cat ./note.md | npm run card -- -o ./output/card.png
+```
+
+### CLI Options
+
+```bash
+npm run card:help
+npm run card -- --list-themes
+npm run card -- --list-fonts
+```
+
+Key style flags:
+- `--theme` (9 themes): `minimal`, `obsidian`, `aurora`, `bamboo`, `sunset`, `midnight`, `skyblue`, `deepocean`, `sunsetbloom`
+- `--font`: `sans`, `serif`, `mono`, `georgia`, `palatino`, `garamond`
+- `--font-size`: `sm`, `base`, `lg`, `xl`
+- `--line-height`: `tight`, `normal`, `relaxed`, `loose`
+- `--decoration`: `none`, `macos`, `mail`, `browser`, `terminal`, `notion`
+- `--pattern`: `dots`, `grid`, `cross`, `lines`, `none`
+- `--footer` / `--no-footer`, `--footer-text`, `--footer-icon`
+- `--with-background` / `--card-only`
+
+---
+
 ## 📂 Project Structure
 
 ```
